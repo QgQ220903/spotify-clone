@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import Song, Video, Album, Playlist, PlaylistSong
+from .models import Artist, Album, Song, Playlist, Favorite
 
-admin.site.register(Song)
-admin.site.register(Video)
+admin.site.register(Artist)
 admin.site.register(Album)
+admin.site.register(Song)
 admin.site.register(Playlist)
-admin.site.register(PlaylistSong)
+admin.site.register(Favorite)

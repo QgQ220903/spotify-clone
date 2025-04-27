@@ -1,37 +1,47 @@
 from rest_framework import serializers
-from .models import Song, Video, Album, Playlist, PlaylistSong
+from .models import Artist, Album, Song, Playlist, Favorite
+from accounts.serializers import UserSerializer
 
-class SongSerializer(serializers.ModelSerializer):
+class ArtistSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Song
-        fields = '__all__'
-
-class VideoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Video
+        model = Artist
         fields = '__all__'
 
 class AlbumSerializer(serializers.ModelSerializer):
+    artist = ArtistSerializer(read_only=True)
+    
     class Meta:
         model = Album
         fields = '__all__'
 
-# Serializer cho playlist
-class PlaylistSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()  # Hiển thị tên user thay vì ID
-    song_count = serializers.SerializerMethodField()  # Số lượng bài hát trong playlist
+class SongSerializer(serializers.ModelSerializer):
+    artists = ArtistSerializer(many=True, read_only=True)
+    album = AlbumSerializer(read_only=True)
+    audio_file_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Song
+        fields = '__all__'
+    
+    def get_audio_file_url(self, obj):
+        request = self.context.get('request')
+        if obj.audio_file and hasattr(obj.audio_file, 'url'):
+            return request.build_absolute_uri(obj.audio_file.url)
+        return None
 
+class PlaylistSerializer(serializers.ModelSerializer):
+    songs = SongSerializer(many=True, read_only=True)
+    user = UserSerializer(read_only=True)
+    
     class Meta:
         model = Playlist
-        fields = ['id', 'user', 'name', 'description', 'cover_image', 'created_at', 'song_count']
+        fields = '__all__'
 
-    def get_song_count(self, obj):
-        return obj.songs.count()  # Đếm số bài hát trong playlist
-
-# Serializer cho bài hát trong playlist
-class PlaylistSongSerializer(serializers.ModelSerializer):
-    song = SongSerializer()  # Lồng serializer của Song để hiển thị chi tiết bài hát
-
+class FavoriteSerializer(serializers.ModelSerializer):
+    songs = SongSerializer(many=True, read_only=True)
+    albums = AlbumSerializer(many=True, read_only=True)
+    user = UserSerializer(read_only=True)
+    
     class Meta:
-        model = PlaylistSong
-        fields = ['id', 'playlist', 'song', 'added_at']
+        model = Favorite
+        fields = '__all__'
