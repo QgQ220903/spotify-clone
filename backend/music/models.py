@@ -1,62 +1,52 @@
 from django.db import models
-from django.contrib.auth.models import User
+from accounts.models import CustomUser
 
-# Model bài hát
-class Song(models.Model):
-    spotify_id = models.CharField(max_length=255, unique=True)  # ID của bài hát trên Spotify
-    title = models.CharField(max_length=255)
-    artist = models.CharField(max_length=255)
-    audio_preview_url = models.URLField(null=True, blank=True)  # Chỉ có trường này, không có 'audio_file'
-    cover_image = models.URLField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.title
-
-    def __str__(self):
-        return self.title
-
-# Model video âm nhạc (Spotify không hỗ trợ video, nên có thể dùng YouTube API nếu cần)
-class Video(models.Model):
-    title = models.CharField(max_length=255)
-    artist = models.CharField(max_length=255)
-    video_url = models.URLField()  # Lưu URL của video từ YouTube hoặc nền tảng khác
-    thumbnail = models.URLField(null=True, blank=True)  # URL ảnh bìa video
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.title
-
-# Model album
-class Album(models.Model):
-    spotify_id = models.CharField(max_length=255, unique=True, null=True, blank=True)  # Cho phép null
+class Artist(models.Model):
     name = models.CharField(max_length=255)
-    artist = models.CharField(max_length=255)
-    cover_image = models.URLField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
+    bio = models.TextField(blank=True)
+    image = models.ImageField(upload_to='artists/', blank=True, null=True)
 
     def __str__(self):
         return self.name
-    
+
+class Album(models.Model):
+    title = models.CharField(max_length=255)
+    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
+    release_date = models.DateField()
+    cover_image = models.ImageField(upload_to='albums/', blank=True, null=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='albums', null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.artist.name}"
+
+class Song(models.Model):
+    title = models.CharField(max_length=255)
+    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='songs', null=True, blank=True)
+    artists = models.ManyToManyField(Artist, related_name='songs')
+    duration = models.DurationField()
+    audio_file = models.FileField(upload_to='songs/audio/')
+    video_file = models.FileField(upload_to='songs/video/', blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='songs/thumbnails/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    plays_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.title
+
 class Playlist(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Playlist thuộc về một User
-    name = models.CharField(max_length=255)  # Tên playlist
-    description = models.TextField(null=True, blank=True)  # Mô tả playlist
-    cover_image = models.URLField(null=True, blank=True)  # Ảnh bìa playlist
-    created_at = models.DateTimeField(auto_now_add=True)  # Ngày tạo
+    name = models.CharField(max_length=255)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='playlists')
+    songs = models.ManyToManyField(Song, related_name='playlists', blank=True)
+    is_public = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} ({self.user.username})"
+        return self.name
 
-class PlaylistSong(models.Model):
-    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name="songs")  # Liên kết playlist
-    song = models.ForeignKey(Song, on_delete=models.CASCADE)  # Liên kết bài hát
-    added_at = models.DateTimeField(auto_now_add=True)  # Ngày thêm bài hát vào playlist
-
-    class Meta:
-        unique_together = ("playlist", "song")  # Đảm bảo không có bài hát trùng trong một playlist
+class Favorite(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='favorites')
+    songs = models.ManyToManyField(Song, related_name='favorited_by', blank=True)
+    albums = models.ManyToManyField(Album, related_name='favorited_by', blank=True)
 
     def __str__(self):
-        return f"{self.song.title} trong {self.playlist.name}"
-
+        return f"{self.user.username}'s favorites"
