@@ -8,21 +8,20 @@ class ArtistSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AlbumSerializer(serializers.ModelSerializer):
-    artist = ArtistSerializer(read_only=True)
-    
+    artist = serializers.PrimaryKeyRelatedField(queryset=Artist.objects.all())
+
     class Meta:
         model = Album
         fields = '__all__'
 
 class SongSerializer(serializers.ModelSerializer):
-    artists = ArtistSerializer(many=True, read_only=True)
-    album = AlbumSerializer(read_only=True)
+    artists = serializers.PrimaryKeyRelatedField(queryset=Artist.objects.all(), many=True)
+    album = serializers.PrimaryKeyRelatedField(queryset=Album.objects.all(), allow_null=True)
     audio_file_url = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Song
         fields = '__all__'
-    
     def get_audio_file_url(self, obj):
         request = self.context.get('request')
         if obj.audio_file and hasattr(obj.audio_file, 'url'):
@@ -30,18 +29,17 @@ class SongSerializer(serializers.ModelSerializer):
         return None
 
 class PlaylistSerializer(serializers.ModelSerializer):
-    songs = SongSerializer(many=True, read_only=True)
-    user = UserSerializer(read_only=True)
-    
+    songs = serializers.PrimaryKeyRelatedField(queryset=Song.objects.all(), many=True, required=False)
     class Meta:
         model = Playlist
         fields = '__all__'
+        read_only_fields = ('user',)
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    songs = SongSerializer(many=True, read_only=True)
-    albums = AlbumSerializer(many=True, read_only=True)
-    user = UserSerializer(read_only=True)
-    
+    songs = serializers.PrimaryKeyRelatedField(queryset=Song.objects.all(), many=True, required=False)
+    albums = serializers.PrimaryKeyRelatedField(queryset=Album.objects.all(), many=True, required=False)
+
     class Meta:
         model = Favorite
         fields = '__all__'
+        read_only_fields = ('user',)
