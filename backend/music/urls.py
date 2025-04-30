@@ -1,16 +1,21 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    ArtistViewSet, AlbumViewSet, SongViewSet, 
-     PlaylistViewSet, FavoriteView
+    ArtistViewSet, AlbumViewSet, SongViewSet,
+    PlaylistViewSet, FavoriteView
 )
 
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import ArtistViewSet, AlbumViewSet, SongViewSet, PlaylistViewSet, FavoriteView
+
 router = DefaultRouter()
-router.register(r'artists', ArtistViewSet)
-router.register(r'albums', AlbumViewSet)
-router.register(r'songs', SongViewSet)
-router.register(r'playlists', PlaylistViewSet)
+router.register(r'artists', ArtistViewSet, basename='artist')
+router.register(r'albums', AlbumViewSet, basename='album')
+router.register(r'songs', SongViewSet, basename='song')
+router.register(r'playlists', PlaylistViewSet, basename='playlist')
 
 urlpatterns = [
-    path('favorites/', FavoriteView.as_view(), name='favorites'),
-] + router.urls
+    path('', include(router.urls)),
+    path('favorites/', FavoriteView.as_view(), name='favorites')
+]
