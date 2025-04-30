@@ -14,7 +14,7 @@ const sidebar = ()=>
                   </div>
                   <div className="flex items-center gap-3">
                            <img className="w-4.5 h-4.5 opacity-60 hover:opacity-100" src={assets.plus} alt="" />
-                           <div class="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-900 transition duration-200">
+                           <div className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-900 transition duration-200">
                            <img className="w-5 h-5 opacity-60 hover:opacity-100" src={assets.rightarrow} alt="" />
                            </div>
                            

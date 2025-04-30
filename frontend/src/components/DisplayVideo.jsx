@@ -6,14 +6,14 @@ const DisplayVideo = ({toggleVideo}) =>{
     const {track,videoRef} = useContext(PlayerContext);
     return(
         <div className="bg-[#121212] w-[80%] h-full relative">
-          <div class="absolute flex items-center justify-between w-full text-white p-3 rounded-lg z-50 ">
-        <div class="font-bold hover:underline font-semibold cursor-pointer uppercase w-[30px]">{track.desc}</div>
-        <div class="flex gap-4">
-             <div class="cursor-pointer relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-400 transition duration-200">
-             <button class="text-lg text-[20px] cursor-pointer ">...</button>
+          <div className="absolute flex items-center justify-between w-full text-white p-3 rounded-lg z-50 ">
+        <div className="font-bold hover:underline font-semibold cursor-pointer uppercase w-[30px]">{track.desc}</div>
+        <div className="flex gap-4">
+             <div className="cursor-pointer relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-400 transition duration-200">
+             <button className="text-lg text-[20px] cursor-pointer ">...</button>
              </div>
-             <div class="cursor-pointer relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-400 transition duration-200">
-             <button onClick={()=>toggleVideo()} class="text-lg cursor-pointer" >✕</button>
+             <div className="cursor-pointer relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-400 transition duration-200">
+             <button onClick={()=>toggleVideo()} className="text-lg cursor-pointer" >✕</button>
              </div>     
         </div>
         </div>

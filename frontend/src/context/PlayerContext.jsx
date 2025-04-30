@@ -217,7 +217,6 @@ const PlayerContextProvider = (props) =>{
     const contextValue ={
         handleVolumeChange,
         startVolumeDrag,
-        startVolumeDrag,
         volume, setVolume,
         volumeBar,
         volumeBg,
