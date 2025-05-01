@@ -5,75 +5,117 @@ import { PlayerContext } from "../context/PlayerContextProvider";
 const Player = ({ toggleVideo }) => {
     const {
         track,
-        seekBar,
-        seekBg,
         playStatus,
         play,
         pause,
-        time,
-        previous,
         next,
+        previous,
         seekSong,
+        seekBar,
+        seekBg,
+        time,
+        volume,
+        handleVolumeChange,
         volumeBg,
         volumeBar,
-        startVolumeDrag,
-        volume,
-        handleVolumeChange
+        audioRef
     } = useContext(PlayerContext);
 
-    const audioRef = useRef(null);
-    const videoRef = useRef(null);
     const [isVideoVisible, setIsVideoVisible] = useState(false);
+    const [isDraggingSeek, setIsDraggingSeek] = useState(false);
+    const [isDraggingVolume, setIsDraggingVolume] = useState(false);
+    const [previewTime, setPreviewTime] = useState(null);
+    const [isShuffleActive, setIsShuffleActive] = useState(false);
+    const [isLoopActive, setIsLoopActive] = useState(false);
+    const [lastVolumeBeforeMute, setLastVolumeBeforeMute] = useState(50);
 
-    useEffect(() => {
-        if (!track) return;
+    // Xử lý tua nhạc với hiển thị preview
+    const handleSeekMouseDown = (e) => {
+        setIsDraggingSeek(true);
+        calculatePreviewTime(e);
+        seekSong(e); // Tua ngay khi bắt đầu kéo
+    };
 
+    const handleSeekMouseMove = (e) => {
+        if (isDraggingSeek) {
+            calculatePreviewTime(e);
+            if (seekBar.current) {
+                const rect = seekBg.current.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                seekBar.current.style.width = `${percent * 100}%`;
+            }
+        }
+    };
+
+    const handleSeekMouseUp = (e) => {
+        if (isDraggingSeek) {
+            seekSong(e); // Apply the seek
+            setIsDraggingSeek(false);
+            setPreviewTime(null);
+        }
+    };
+
+    // Tính toán thời gian preview khi tua
+    const calculatePreviewTime = (e) => {
+        if (!seekBg.current || !audioRef.current || !audioRef.current.duration) return;
+
+        const rect = seekBg.current.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        const previewTimeValue = audioRef.current.duration * percent;
+
+        setPreviewTime({
+            minute: String(Math.floor(previewTimeValue / 60)).padStart(2, "0"),
+            second: String(Math.floor(previewTimeValue % 60)).padStart(2, "0")
+        });
+    };
+
+    // Xử lý điều chỉnh âm lượng với kéo
+    const handleVolumeMouseDown = (e) => {
+        setIsDraggingVolume(true);
+        handleVolumeChange(e);
+    };
+
+    const handleVolumeMouseMove = (e) => {
+        if (isDraggingVolume) {
+            handleVolumeChange(e);
+        }
+    };
+
+    const handleVolumeMouseUp = () => {
+        setIsDraggingVolume(false);
+    };
+
+    // Toggle mute/unmute
+    const toggleMute = () => {
+        if (!audioRef.current) return;
+
+        if (audioRef.current.volume > 0) {
+            // Store current volume before muting
+            setLastVolumeBeforeMute(volume);
+            // Set volume to 0
+            if (volumeBar.current) volumeBar.current.style.width = "0%";
+            audioRef.current.volume = 0;
+        } else {
+            // Restore previous volume
+            const restoredVolume = lastVolumeBeforeMute || 50;
+            if (volumeBar.current) volumeBar.current.style.width = `${restoredVolume}%`;
+            audioRef.current.volume = restoredVolume / 100;
+        }
+    };
+
+    // Toggle shuffle
+    const toggleShuffle = () => {
+        setIsShuffleActive(prev => !prev);
+        // Implement shuffle logic in PlayerContextProvider
+    };
+
+    // Toggle loop
+    const toggleLoop = () => {
+        setIsLoopActive(prev => !prev);
         if (audioRef.current) {
-            audioRef.current.src = track.audio_file || '';
-            audioRef.current.load();
+            audioRef.current.loop = !isLoopActive;
         }
-
-        if (videoRef.current && track.video_file) {
-            videoRef.current.src = track.video_file || '';
-            videoRef.current.load();
-        }
-
-        // Sync playback status
-        const handlePlayback = async () => {
-            try {
-                if (playStatus) {
-                    if (audioRef.current) await audioRef.current.play();
-                    if (isVideoVisible && videoRef.current && track.video_file) await videoRef.current.play();
-                } else {
-                    if (audioRef.current) audioRef.current.pause();
-                    if (videoRef.current) videoRef.current.pause();
-                }
-            } catch (error) {
-                console.error("Playback error:", error);
-            }
-        };
-
-        handlePlayback();
-    }, [track, playStatus, isVideoVisible]);
-
-    // Sync audio and video playback
-    useEffect(() => {
-        const handleAudioTimeUpdate = () => {
-            if (videoRef.current && audioRef.current && isVideoVisible) {
-                videoRef.current.currentTime = audioRef.current.currentTime;
-            }
-        };
-
-        if (audioRef.current) {
-            audioRef.current.addEventListener('timeupdate', handleAudioTimeUpdate);
-        }
-
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.removeEventListener('timeupdate', handleAudioTimeUpdate);
-            }
-        };
-    }, [isVideoVisible]);
+    };
 
     // Toggle video visibility
     const handleToggleVideo = () => {
@@ -83,10 +125,38 @@ const Player = ({ toggleVideo }) => {
         }
     };
 
+    // Handle document-wide mouse events for continuous dragging
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (isDraggingSeek) {
+                handleSeekMouseMove(e);
+            }
+            if (isDraggingVolume) {
+                handleVolumeMouseMove(e);
+            }
+        };
+
+        const handleMouseUp = (e) => {
+            if (isDraggingSeek) {
+                handleSeekMouseUp(e);
+            }
+            if (isDraggingVolume) {
+                handleVolumeMouseUp();
+            }
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDraggingSeek, isDraggingVolume]);
+
     // Helper function để lấy tên nghệ sĩ
     const getArtistNames = () => {
         if (!track || !track.artists || track.artists.length === 0) return "Unknown Artist";
-
         return track.artists.map(artist => artist.name).join(", ");
     };
 
@@ -109,7 +179,7 @@ const Player = ({ toggleVideo }) => {
                     </p>
                 </div>
                 <div>
-                    <img className="w-4 h-4 opacity-60 hover:opacity-100 hover:scale-105"
+                    <img className="w-4 h-4 opacity-60 hover:opacity-100 hover:scale-105 cursor-pointer"
                         src={assets.add} alt="Add" />
                 </div>
             </div>
@@ -117,10 +187,18 @@ const Player = ({ toggleVideo }) => {
             {/* Player controls - Center */}
             <div className="flex flex-col items-center gap-1 mx-auto">
                 <div className="flex gap-5 items-center justify-center">
-                    <img className="w-5 h-5 cursor-pointer opacity-60 hover:opacity-100 hover:scale-105"
-                        src={assets.arrowsong} alt="Shuffle" />
-                    <img onClick={previous} className="w-7 h-7 cursor-pointer opacity-60 hover:opacity-100 hover:scale-105"
-                        src={assets.prev} alt="Previous" />
+                    <img
+                        className={`w-5 h-5 cursor-pointer ${isShuffleActive ? 'opacity-100' : 'opacity-60'} hover:opacity-100 hover:scale-105`}
+                        src={assets.arrowsong}
+                        alt="Shuffle"
+                        onClick={toggleShuffle}
+                    />
+                    <img
+                        onClick={previous}
+                        className="w-7 h-7 cursor-pointer opacity-60 hover:opacity-100 hover:scale-105"
+                        src={assets.prev}
+                        alt="Previous"
+                    />
                     {playStatus ? (
                         <div onClick={pause} className="cursor-pointer w-8 h-8 bg-white flex items-center justify-center rounded-full hover:scale-105">
                             <img className="w-3.5 h-3.5" src={assets.pause} alt="Pause" />
@@ -130,21 +208,44 @@ const Player = ({ toggleVideo }) => {
                             <img className="w-3.5 h-3.5" src={assets.play} alt="Play" />
                         </div>
                     )}
-                    <img onClick={next} className="w-7 h-7 cursor-pointer opacity-60 hover:opacity-100 hover:scale-105"
-                        src={assets.next} alt="Next" />
-                    <img className="w-6 h-6 cursor-pointer opacity-60 hover:opacity-100 hover:scale-105"
-                        src={assets.loop} alt="Loop" />
+                    <img
+                        onClick={next}
+                        className="w-7 h-7 cursor-pointer opacity-60 hover:opacity-100 hover:scale-105"
+                        src={assets.next}
+                        alt="Next"
+                    />
+                    <img
+                        className={`w-6 h-6 cursor-pointer ${isLoopActive ? 'opacity-100' : 'opacity-60'} hover:opacity-100 hover:scale-105`}
+                        src={assets.loop}
+                        alt="Loop"
+                        onClick={toggleLoop}
+                    />
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <p className="text-xs mb-1">
-                        {time?.currentTime?.minute}:{time?.currentTime?.second}
+                    <p className="text-xs text-white">
+                        {isDraggingSeek && previewTime
+                            ? `${previewTime.minute}:${previewTime.second}`
+                            : `${time?.currentTime?.minute || "00"}:${time?.currentTime?.second || "00"}`}
                     </p>
-                    <div ref={seekBg} onClick={seekSong} className="w-96 bg-gray-700 rounded-full cursor-pointer">
-                        <hr ref={seekBar} className="h-1 border-none w-0 bg-green-500 rounded-full" />
+                    <div
+                        ref={seekBg}
+                        className="w-96 bg-gray-700 h-1 rounded-full cursor-pointer relative"
+                        onMouseDown={handleSeekMouseDown}
+                    >
+                        <div
+                            ref={seekBar}
+                            className="h-1 border-none w-0 bg-green-500 rounded-full absolute top-0 left-0"
+                        />
+                        {isDraggingSeek && (
+                            <div
+                                className="w-3 h-3 bg-white rounded-full absolute top-1/2 transform -translate-y-1/2"
+                                style={{ left: `calc(${seekBar.current?.style.width || '0'} - 6px)` }}
+                            />
+                        )}
                     </div>
-                    <p className="text-xs mb-1">
-                        {time?.totaltime?.minute}:{time?.totaltime?.second}
+                    <p className="text-xs text-white">
+                        {time?.totaltime?.minute || "00"}:{time?.totaltime?.second || "00"}
                     </p>
                 </div>
             </div>
@@ -163,40 +264,34 @@ const Player = ({ toggleVideo }) => {
                     src={assets.queue} alt="Queue" />
                 <img className="w-5 h-5 cursor-pointer hover:opacity-100 opacity-60 hover:scale-105"
                     src={assets.connect} alt="Connect" />
-                <img className="w-5 h-5 cursor-pointer hover:opacity-100 opacity-60 hover:scale-105"
-                    src={assets.volume} alt="Volume" />
-                <div ref={volumeBg} onMouseDown={startVolumeDrag} onClick={handleVolumeChange}
-                    className="w-24 bg-gray-700 rounded-full cursor-pointer">
-                    <hr
+                <img
+                    className="w-5 h-5 cursor-pointer hover:opacity-100 opacity-60 hover:scale-105"
+                    src={assets.volume}
+                    alt="Volume"
+                    onClick={toggleMute}
+                />
+                <div
+                    ref={volumeBg}
+                    className="w-24 bg-gray-700 h-1 rounded-full cursor-pointer relative"
+                    onMouseDown={handleVolumeMouseDown}
+                >
+                    <div
                         ref={volumeBar}
-                        className="h-1 border-none bg-green-500 rounded-full"
+                        className="h-1 border-none bg-green-500 rounded-full absolute top-0 left-0"
                         style={{ width: `${volume}%` }}
                     />
+                    {isDraggingVolume && (
+                        <div
+                            className="w-3 h-3 bg-white rounded-full absolute top-1/2 transform -translate-y-1/2"
+                            style={{ left: `calc(${volume}% - 6px)` }}
+                        />
+                    )}
                 </div>
                 <img className="w-5 h-5 cursor-pointer hover:opacity-100 opacity-60 hover:scale-105"
                     src={assets.miniplayer} alt="Mini player" />
                 <img className="w-5 h-5 cursor-pointer hover:opacity-100 opacity-60 hover:scale-105"
                     src={assets.zoom} alt="Zoom" />
             </div>
-
-            {/* Hidden media elements */}
-            <audio
-                ref={audioRef}
-                className="hidden"
-                onPlay={() => !playStatus && play()}
-                onPause={() => playStatus && pause()}
-            />
-
-            {/* Conditionally render video container based on isVideoVisible */}
-            {isVideoVisible && track.video_file && (
-                <div className="hidden">
-                    <video
-                        ref={videoRef}
-                        onPlay={() => !playStatus && play()}
-                        onPause={() => playStatus && pause()}
-                    />
-                </div>
-            )}
         </div>
     );
 };
