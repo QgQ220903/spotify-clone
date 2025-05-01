@@ -93,8 +93,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'spotify_clone',
         'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',  # Use 'localhost' if the database is on the same machine
+        'PASSWORD': 'root',
+        'HOST': '127.0.0.1',  
         'PORT': '3306',
     }
 }
@@ -148,6 +148,8 @@ from datetime import timedelta
 
 # REST Framework config
 REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
     # 'DEFAULT_AUTHENTICATION_CLASSES': (
     #     'rest_framework_simplejwt.authentication.JWTAuthentication',
     # ),

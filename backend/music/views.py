@@ -14,7 +14,6 @@ User = get_user_model()
 class ArtistViewSet(viewsets.ModelViewSet):
     queryset = Artist.objects.all()
     serializer_class = ArtistSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly] # Comment hoặc xóa dòng này
     filterset_fields = ['name']
 
     def create(self, request, *args, **kwargs):
@@ -40,7 +39,6 @@ class ArtistViewSet(viewsets.ModelViewSet):
 class AlbumViewSet(viewsets.ModelViewSet):
     queryset = Album.objects.all()
     serializer_class = AlbumSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly] # Comment hoặc xóa dòng này
     filterset_fields = ['title', 'artist__name']
 
     def create(self, request, *args, **kwargs):
@@ -66,7 +64,6 @@ class AlbumViewSet(viewsets.ModelViewSet):
 class SongViewSet(viewsets.ModelViewSet):
     queryset = Song.objects.all()
     serializer_class = SongSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly] # Comment hoặc xóa dòng này
     filterset_fields = ['title', 'artists__name', 'album__title']
 
     def retrieve(self, request, *args, **kwargs):
@@ -98,7 +95,6 @@ class SongViewSet(viewsets.ModelViewSet):
 
 class PlaylistViewSet(viewsets.ModelViewSet):
     serializer_class = PlaylistSerializer
-    # permission_classes = [IsAuthenticated] # Comment hoặc xóa dòng này
 
     def get_queryset(self):
         return Playlist.objects.all() # Thay đổi để trả về tất cả playlist
@@ -128,10 +124,6 @@ class FavoriteView(generics.RetrieveUpdateAPIView):
     # permission_classes = [IsAuthenticated] # Comment hoặc xóa dòng này
 
     def get_object(self):
-        # user = self.request.user # Comment dòng này
-        # favorite, created = Favorite.objects.get_or_create(user=user) # Comment dòng này
-        # return favorite # Comment dòng này
-        # Thay thế bằng cách trả về favorite đầu tiên hoặc tạo mới nếu không có
         if Favorite.objects.exists():
             return Favorite.objects.first()
         else:

@@ -8,20 +8,44 @@ class ArtistSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AlbumSerializer(serializers.ModelSerializer):
-    artist = serializers.PrimaryKeyRelatedField(queryset=Artist.objects.all())
-
+    # Thay đổi từ PrimaryKeyRelatedField sang ArtistSerializer
+    artist = ArtistSerializer(read_only=True)
+    
+    # Thêm trường write_only để xử lý khi tạo/update
+    artist_id = serializers.PrimaryKeyRelatedField(
+        queryset=Artist.objects.all(),
+        source='artist',
+        write_only=True
+    )
+    
     class Meta:
         model = Album
         fields = '__all__'
+        extra_kwargs = {
+            'user': {'read_only': True}  # Tự động gán user khi tạo
+        }
 
 class SongSerializer(serializers.ModelSerializer):
-    artists = serializers.PrimaryKeyRelatedField(queryset=Artist.objects.all(), many=True)
-    album = serializers.PrimaryKeyRelatedField(queryset=Album.objects.all(), allow_null=True)
+    artists = ArtistSerializer(many=True, read_only=True)
+    artists_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Artist.objects.all(), 
+        many=True,
+        source='artists',
+        write_only=True
+    )
+    album = AlbumSerializer(read_only=True)
+    album_id = serializers.PrimaryKeyRelatedField(
+        queryset=Album.objects.all(),
+        source='album',
+        write_only=True,
+        allow_null=True
+    )
     audio_file_url = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = Song
         fields = '__all__'
+        
     def get_audio_file_url(self, obj):
         request = self.context.get('request')
         if obj.audio_file and hasattr(obj.audio_file, 'url'):

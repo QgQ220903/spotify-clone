@@ -1,4 +1,4 @@
-import { createContext,useEffect,useRef, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 import { songData } from "../assets/assets";
 
 
@@ -6,42 +6,42 @@ export const PlayerContext = createContext();
 
 
 
-const PlayerContextProvider = (props) =>{
+const PlayerContextProvider = (props) => {
     const [volume, setVolume] = useState(50);
     const volumeBg = useRef();
     const volumeBar = useRef();
-     const audioRef =useRef();
-     const videoRef = useRef();
-     const seekBg = useRef();
-     const seekBar = useRef();
-     const [track, setTrack] = useState(songData[1]);
-     const [playStatus,setPlayStatus] =useState(false);
-     const [time,setTime] = useState({
-        currentTime:{
-            second:0,
-            minute:0
+    const audioRef = useRef();
+    const videoRef = useRef();
+    const seekBg = useRef();
+    const seekBar = useRef();
+    const [track, setTrack] = useState(null);
+    const [playStatus, setPlayStatus] = useState(false);
+    const [time, setTime] = useState({
+        currentTime: {
+            second: 0,
+            minute: 0
         },
-        totaltime:{
-            second:0,
-            minute:0
+        totaltime: {
+            second: 0,
+            minute: 0
         }
-     })
-     const showVideo = () => {
-        if (videoRef.current && audioRef.current) {
-            videoRef.current.currentTime = audioRef.current.currentTime; // Đồng bộ thời gian
-            videoRef.current.play(); // Phát video
-        }
-    };
-     const play = () => {
+    })
+    // const showVideo = () => {
+    //     if (videoRef.current && audioRef.current) {
+    //         videoRef.current.currentTime = audioRef.current.currentTime; // Đồng bộ thời gian
+    //         videoRef.current.play(); // Phát video
+    //     }
+    // };
+    const play = () => {
         if (audioRef.current) {
             audioRef.current.play();
         }
-        if (videoRef.current && !videoRef.current.paused) {  
+        if (videoRef.current && !videoRef.current.paused) {
             videoRef.current.play();
         }
         setPlayStatus(true);
     };
-    
+
     const pause = () => {
         if (audioRef.current) {
             audioRef.current.pause();
@@ -51,53 +51,53 @@ const PlayerContextProvider = (props) =>{
         }
         setPlayStatus(false);
     };
-    const playWithId = async (id) =>{
+    const playWithId = async (id) => {
         await setTrack(songData[id]);
         await audioRef.current.play();
         await videoRef.current.play();
         setPlayStatus(true);
     }
 
-    const previous = async () =>{
-        if(track.id>0){
-            await setTrack(songData[track.id-1]);
+    const previous = async () => {
+        if (track.id > 0) {
+            await setTrack(songData[track.id - 1]);
             await audioRef.current.play();
             await videoRef.current.play();
             setPlayStatus(true);
         }
     }
-    const next = async ()=>{
-        if (track.id < songData.length-1){
-                await setTrack(songData[track.id+1]);
-                await audioRef.current.play();
-                await videoRef.current.play();
-                setPlayStatus(true);
-     
+    const next = async () => {
+        if (track.id < songData.length - 1) {
+            await setTrack(songData[track.id + 1]);
+            await audioRef.current.play();
+            await videoRef.current.play();
+            setPlayStatus(true);
+
         }
     }
-    const seekSong = async(e) =>{
-        audioRef.current.currentTime = ((e.nativeEvent.offsetX / seekBg.current.offsetWidth)*audioRef.current.duration)
-        videoRef.current.currentTime = ((e.nativeEvent.offsetX / seekBg.current.offsetWidth)*audioRef.current.duration) 
+    const seekSong = async (e) => {
+        audioRef.current.currentTime = ((e.nativeEvent.offsetX / seekBg.current.offsetWidth) * audioRef.current.duration)
+        videoRef.current.currentTime = ((e.nativeEvent.offsetX / seekBg.current.offsetWidth) * audioRef.current.duration)
     }
-     useEffect (()=>{
-        setTimeout(() =>{
-         audioRef.current.ontimeupdate = () =>{
-            seekBar.current.style.width = (Math.floor(audioRef.current.currentTime/audioRef.current.duration*100))+ "%";
-            setTime({
-                currentTime:{
-                    second: Math.floor(audioRef.current.currentTime % 60),
-                    minute:Math.floor(audioRef.current.currentTime / 60)
-                },
-                totaltime:{
-                    second: Math.floor(audioRef.current.duration % 60),
-                    minute:Math.floor(audioRef.current.duration / 60)
-                }
-             })
-         }
+    useEffect(() => {
+        setTimeout(() => {
+            audioRef.current.ontimeupdate = () => {
+                seekBar.current.style.width = (Math.floor(audioRef.current.currentTime / audioRef.current.duration * 100)) + "%";
+                setTime({
+                    currentTime: {
+                        second: Math.floor(audioRef.current.currentTime % 60),
+                        minute: Math.floor(audioRef.current.currentTime / 60)
+                    },
+                    totaltime: {
+                        second: Math.floor(audioRef.current.duration % 60),
+                        minute: Math.floor(audioRef.current.duration / 60)
+                    }
+                })
+            }
 
         }, 1000)
-     })
-     useEffect(() => {
+    })
+    useEffect(() => {
         if (videoRef.current) {
             videoRef.current.load();
             videoRef.current.load();
@@ -112,7 +112,7 @@ const PlayerContextProvider = (props) =>{
     const handleSeek = (newTime) => {
         if (audioRef.current) {
             audioRef.current.currentTime = newTime;
-    
+
             if (videoRef.current) {
                 videoRef.current.currentTime = newTime;
             }
@@ -145,7 +145,7 @@ const PlayerContextProvider = (props) =>{
                 videoRef.current.currentTime = audioRef.current.currentTime;
             }
         };
-    
+
         audioRef.current?.addEventListener("pause", syncOnPause);
         return () => {
             audioRef.current?.removeEventListener("pause", syncOnPause);
@@ -154,11 +154,11 @@ const PlayerContextProvider = (props) =>{
     useEffect(() => {
         const video = document.getElementById("videoPlayer");
         if (!video) return;
-    
+
         const handleLoad = () => {
             console.log("Video đã load xong, sẵn sàng để phát!");
         };
-    
+
         video.addEventListener("canplaythrough", handleLoad);
         return () => {
             video.removeEventListener("canplaythrough", handleLoad);
@@ -181,12 +181,12 @@ const PlayerContextProvider = (props) =>{
             audioRef.current.volume = newVolume / 100;
         }
     };
-    
+
     const startVolumeDrag = () => {
         window.addEventListener("mousemove", handleVolumeChange);
         window.addEventListener("mouseup", stopVolumeDrag);
     };
-    
+
     const stopVolumeDrag = () => {
         window.removeEventListener("mousemove", handleVolumeChange);
         window.removeEventListener("mouseup", stopVolumeDrag);
@@ -214,7 +214,7 @@ const PlayerContextProvider = (props) =>{
             setPlayStatus(!audioRef.current.paused);
         }
     }, [track]);
-    const contextValue ={
+    const contextValue = {
         handleVolumeChange,
         startVolumeDrag,
         volume, setVolume,
@@ -223,23 +223,23 @@ const PlayerContextProvider = (props) =>{
         handleVideoOpen,
         handleSeek,
         showVideo,
-          videoRef,
-          audioRef,
-          seekBg,
-          seekBar,
-          track, setTrack,
-          playStatus, setPlayStatus,
-          time, setTime,
-          play, pause,
-          playWithId,
-          previous,next,
-          seekSong
+        videoRef,
+        audioRef,
+        seekBg,
+        seekBar,
+        track, setTrack,
+        playStatus, setPlayStatus,
+        time, setTime,
+        play, pause,
+        playWithId,
+        previous, next,
+        seekSong
     }
 
     return (
         <PlayerContext.Provider value={contextValue}>
             {props.children}
-       </PlayerContext.Provider>
+        </PlayerContext.Provider>
     )
 }
 export default PlayerContextProvider;
