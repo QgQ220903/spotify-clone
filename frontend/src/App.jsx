@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react'
-import Navbar from './components/navbar'
+import Navbar from './components/Navbar'
 import Sidebar from './components/sidebar'
 import Player from './components/Player'
 import Display from './components/Display'
@@ -25,14 +25,11 @@ function App() {
           <Display />
           {showVideo && <Displayvideo toggleVideo={toggleVideo} />}
         </div>
-
-
       </div>
       <div className='mt-4'>
         <Player toggleVideo={toggleVideo} />
         <audio ref={audioRef} src={track?.file || ''} preload='auto'></audio>
       </div>
-
     </div>
   )
 }

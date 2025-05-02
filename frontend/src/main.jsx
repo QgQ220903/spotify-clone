@@ -2,17 +2,28 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import PlayerContextProvider from './context/PlayerContextProvider.jsx'
 import LoginProvider from './context/Login.jsx'
+import { AuthProvider } from './context/AuthContext.jsx' // 👈 import
+
+import Login from './components/Login.jsx'
+import Register from './components/Register.jsx'
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <PlayerContextProvider>
         <LoginProvider>
-          <App />
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/*" element={<App />} />
+            </Routes>
+          </AuthProvider>
         </LoginProvider>
       </PlayerContextProvider>
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 )
