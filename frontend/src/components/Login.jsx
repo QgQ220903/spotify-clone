@@ -35,6 +35,8 @@ function Login() {
         userType: decoded.user_type,
       })
 
+      console.log(decoded.is_admin) // true hoặc false
+
       toast.success('🎉 Đăng nhập thành công!', {
         position: 'top-right',
         autoClose: 2000,

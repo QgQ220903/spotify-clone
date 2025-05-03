@@ -1,3 +1,4 @@
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,16 +7,19 @@ from django.shortcuts import get_object_or_404
 from .serializers import UserSerializer, AdminUserSerializer, CustomTokenObtainPairSerializer
 from .permissions import IsAdminUser
 from django.contrib.auth import get_user_model
+import jwt
+from datetime import datetime, timedelta
+from django.conf import settings
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 User = get_user_model()
 
-
+# Giữ nguyên các view hiện có của bạn
 class UserCreateView(generics.CreateAPIView):
     """View for user registration"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
-
 
 class UserDetailView(generics.RetrieveUpdateAPIView):
     """View for retrieving and updating user profile"""
@@ -24,7 +28,6 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
-
 
 class FollowUserView(generics.GenericAPIView):
     """View for following/unfollowing users"""
@@ -44,26 +47,21 @@ class FollowUserView(generics.GenericAPIView):
             user.following.add(user_to_follow)
             return Response({'status': 'followed'})
 
-
 class CustomTokenObtainPairView(TokenObtainPairView):
     """Custom JWT token view with user type information"""
     serializer_class = CustomTokenObtainPairSerializer
 
-
-# Admin views
 class AdminUserListView(generics.ListAPIView):
     """View for admin to list all users"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
-
 class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """View for admin to manage individual users"""
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
-
 
 class SetUserTypeView(APIView):
     """View for admin to set user type"""
@@ -83,3 +81,40 @@ class SetUserTypeView(APIView):
         user.save()
         
         return Response({'status': 'success', 'user_type': user.user_type})
+
+# Thêm các API mới cho admin frontend
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def generate_admin_token(request):
+    """Tạo token JWT tạm thời cho admin frontend"""
+    payload = {
+        'user_id': request.user.id,
+        'username': request.user.username,
+        'is_admin': True,
+        'exp': datetime.utcnow() + timedelta(minutes=5),
+        'admin_access': True
+    }
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+    return Response({'token': token})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def verify_admin_token(request):
+    """Xác thực token admin (sẽ được admin frontend gọi)"""
+    # Middleware đã xác thực token trước khi vào view này
+    return Response({'valid': True, 'user': {
+        'id': request.user.id,
+        'username': request.user.username,
+        'is_admin': request.user.user_type == 'admin'
+    }})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def admin_dashboard_stats(request):
+    """Lấy thống kê cho dashboard admin"""
+    stats = {
+        'total_users': User.objects.count(),
+        'active_users': User.objects.filter(is_active=True).count(),
+        'admin_users': User.objects.filter(user_type='admin').count(),
+    }
+    return Response(stats)

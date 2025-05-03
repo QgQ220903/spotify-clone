@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react'
-import Navbar from './components/Navbar'
+import Navbar from './components/navbar'
 import Sidebar from './components/sidebar'
 import Player from './components/Player'
 import Display from './components/Display'
