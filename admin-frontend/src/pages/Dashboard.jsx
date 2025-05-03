@@ -1,75 +1,107 @@
-import StatsCard from '../components/Admin/StatsCard';
-import { FaUsers, FaMusic, FaCompactDisc, FaUserAlt, FaPlayCircle, FaPlusSquare } from 'react-icons/fa';
+import React from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  Divider,
+  Container,
+  useTheme
+} from '@mui/material';
+import MusicNoteIcon from '@mui/icons-material/MusicNote';
+import GroupIcon from '@mui/icons-material/Group';
+import AlbumIcon from '@mui/icons-material/Album';
+import PersonIcon from '@mui/icons-material/Person';
+import InfoIcon from '@mui/icons-material/Info';
+import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects';
+import BuildIcon from '@mui/icons-material/Build';
 
-const Dashboard = () => {
-  const stats = [
-    { title: 'Total Users', value: '12,345', icon: <FaUsers className="text-white text-2xl" />, color: 'bg-green-500' },
-    { title: 'Total Songs', value: '56,789', icon: <FaMusic className="text-white text-2xl" />, color: 'bg-blue-500' },
-    { title: 'Total Albums', value: '8,901', icon: <FaCompactDisc className="text-white text-2xl" />, color: 'bg-purple-500' },
-    { title: 'Total Artists', value: '2,345', icon: <FaUserAlt className="text-white text-2xl" />, color: 'bg-yellow-500' },
-    { title: 'New Songs Today', value: '125', icon: <FaPlusSquare className="text-white text-2xl" />, color: 'bg-teal-500' },
-    { title: 'Songs Played Today', value: '18,765', icon: <FaPlayCircle className="text-white text-2xl" />, color: 'bg-orange-500' },
-  ];
+const features = [
+  {
+    icon: <GroupIcon fontSize="large" color="success" />,
+    title: 'Tổng quan trực quan',
+    description: 'Dễ dàng theo dõi tổng số người dùng, bài hát, album và nghệ sĩ.',
+  },
+  {
+    icon: <MusicNoteIcon fontSize="large" color="primary" />,
+    title: 'Cập nhật thời gian thực',
+    description: 'Theo dõi người dùng mới, bài hát vừa thêm hoặc được phát gần nhất.',
+  },
+  {
+    icon: <AlbumIcon fontSize="large" color="secondary" />,
+    title: 'Quản lý nội dung',
+    description: 'Tối ưu thao tác với người dùng, bài hát, album, nghệ sĩ.',
+  },
+  {
+    icon: <PersonIcon fontSize="large" color="warning" />,
+    title: 'Giao diện hiện đại',
+    description: 'Thiết kế thân thiện, dễ dùng, linh hoạt cho quản trị viên.',
+  },
+];
+
+const Dashboach = () => {
+  const theme = useTheme();
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      <h2 className="text-3xl font-bold text-gray-800 mb-8">Dashboard Overview</h2>
+    <Container maxWidth="lg" sx={{ py: 5 }}>
+      <Box textAlign="center" mb={4}>
+        <InfoIcon color="primary" sx={{ fontSize: 40 }} />
+        <Typography variant="h4" fontWeight="bold" gutterBottom>
+          Spotify Admin Panel – Giới Thiệu
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Công cụ quản trị toàn diện dành cho quản lý nền tảng âm nhạc
+        </Typography>
+      </Box>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
-        {stats.map((stat, index) => (
-          <StatsCard key={index} {...stat} />
-        ))}
-      </div>
+      <Box mb={5}>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          🌟 Tính năng nổi bật
+        </Typography>
+        <Grid container spacing={3}>
+          {features.map((feature, index) => (
+            <Grid item xs={12} md={6} key={index}>
+              <Paper elevation={2} sx={{ p: 3, display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                {feature.icon}
+                <Box>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    {feature.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {feature.description}
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
 
-      {/* Recent Activity Section */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h3>
-        <div className="space-y-4">
-          <div className="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <div className="bg-green-100 text-green-500 p-3 rounded-full mr-4">
-              <FaUserAlt className="text-lg" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-800">New user registered</p>
-              <p className="text-sm text-gray-500">2 minutes ago</p>
-            </div>
-          </div>
+      <Divider sx={{ my: 4 }} />
 
-          <div className="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <div className="bg-blue-100 text-blue-500 p-3 rounded-full mr-4">
-              <FaPlusSquare className="text-lg" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-800">New song added</p>
-              <p className="text-sm text-gray-500">15 minutes ago</p>
-            </div>
-          </div>
+      <Box mb={5}>
+        <Box display="flex" alignItems="center" mb={1}>
+          <EmojiObjectsIcon color="warning" sx={{ mr: 1 }} />
+          <Typography variant="h6" fontWeight="bold">Mục tiêu của chúng tôi</Typography>
+        </Box>
+        <Typography variant="body1" color="text.secondary">
+          Giúp đội ngũ vận hành Spotify quản lý dữ liệu hiệu quả, nhanh chóng và chính xác –
+          từ người dùng cuối đến nội dung âm nhạc.
+        </Typography>
+      </Box>
 
-          <div className="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <div className="bg-purple-100 text-purple-500 p-3 rounded-full mr-4">
-              <FaCompactDisc className="text-lg" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-800">New album created</p>
-              <p className="text-sm text-gray-500">30 minutes ago</p>
-            </div>
-          </div>
+      <Divider sx={{ my: 4 }} />
 
-          <div className="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <div className="bg-yellow-100 text-yellow-500 p-3 rounded-full mr-4">
-              <FaPlayCircle className="text-lg" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-800">User started playing a song</p>
-              <p className="text-sm text-gray-500">45 minutes ago</p>
-            </div>
-          </div>
-
-          {/* Add more activity blocks here if needed */}
-        </div>
-      </div>
-    </div>
+      <Box>
+        <Box display="flex" alignItems="center" mb={1}>
+          <BuildIcon color="action" sx={{ mr: 1 }} />
+          <Typography variant="h6" fontWeight="bold">Được phát triển bởi</Typography>
+        </Box>
+        <Typography variant="body2">Spotify Admin Team</Typography>
+        <Typography variant="caption">© 2025 Spotify AB</Typography>
+      </Box>
+    </Container>
   );
 };
 
-export default Dashboard;
+export default Dashboach;
