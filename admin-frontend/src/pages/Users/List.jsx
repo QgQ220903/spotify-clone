@@ -94,7 +94,9 @@ const UserList = () => {
         UserService.getAll(),
         UserService.getStats()
       ]);
-      setUsers(usersRes);
+      console.log("usersRes:", usersRes);
+      console.log("statsRes:", statsRes);
+      setUsers(usersRes.results || []);
       setStats(statsRes);
     } catch (err) {
       setError('Failed to fetch data');

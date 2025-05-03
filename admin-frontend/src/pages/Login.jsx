@@ -1,57 +1,43 @@
-// src/pages/Login.jsx
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import AuthService from '../services/AuthService';
 
-export default function LoginPage() {
+const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Gọi API login
-      const response = await fetch('/api/auth/login/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        login({
-          username: data.username,
-          isAdmin: data.is_admin,
-          token: data.access
-        });
-        navigate('/');
-      } else {
-        setError(data.message || 'Login failed');
-      }
+      await AuthService.login(username, password);
+      navigate('/dashboard');
     } catch (err) {
-      setError('Network error');
+      setError('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Username"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-      />
-      {error && <div className="error">{error}</div>}
-      <button type="submit">Login</button>
-    </form>
+    <div>
+      <form onSubmit={handleLogin}>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+        />
+        <button type="submit">Đăng nhập</button>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+      </form>
+    </div>
   );
-}
+};
+
+export default Login;
