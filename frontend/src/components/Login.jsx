@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import axios from '../api/axiosInstance'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { useAuth } from '../context/AuthContext' // <== Thêm dòng này
+import { jwtDecode } from 'jwt-decode'      // <== Thêm dòng này
 
 function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
+  const { setUser } = useAuth() // <== Lấy setUser từ context
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -17,15 +20,27 @@ function Login() {
         password,
       })
 
-      localStorage.setItem('accessToken', res.data.access)
-      localStorage.setItem('refreshToken', res.data.refresh)
+      const accessToken = res.data.access
+      const refreshToken = res.data.refresh
+
+      // Lưu vào localStorage
+      localStorage.setItem('accessToken', accessToken)
+      localStorage.setItem('refreshToken', refreshToken)
+
+      // Giải mã và cập nhật user ngay lập tức
+      const decoded = jwtDecode(accessToken)
+      setUser({
+        username: decoded.username,
+        isAdmin: decoded.is_admin,
+        userType: decoded.user_type,
+      })
 
       toast.success('🎉 Đăng nhập thành công!', {
         position: 'top-right',
-        autoClose: 3000,
+        autoClose: 2000,
       })
 
-      setTimeout(() => navigate('/'), 3000)
+      setTimeout(() => navigate('/'), 2000)
     } catch (err) {
       toast.error('❌ Sai thông tin đăng nhập.', {
         position: 'top-right',
