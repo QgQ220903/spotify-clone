@@ -1,241 +1,217 @@
-import React, { useState, useRef } from 'react';
-import { Table, Input, Button, Space, Typography, Modal, Form, message } from 'antd';
-import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from 'react';
+import {
+  Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  TextField, Typography, IconButton, Avatar, InputAdornment
+} from '@mui/material';
+import { Add, Delete, Edit, Search } from '@mui/icons-material';
+import ArtistService from '../../services/ArtistService';
 
-const { Title, Text } = Typography;
-
-const initialArtists = [
-  { id: 1, name: 'The Weeknd', genre: 'R&B' },
-  { id: 2, name: 'Dua Lipa', genre: 'Pop' },
-  { id: 3, name: 'Harry Styles', genre: 'Pop' },
-  { id: 4, name: 'Billie Eilish', genre: 'Pop' },
-  { id: 5, name: 'Taylor Swift', genre: 'Pop, Alternative' },
-];
-
-let nextId = initialArtists.length + 1;
+// Define Spotify-like light green color
+const spotifyGreenLight = '#1DB954';
+const spotifyGreen = '#1DB954';
+const spotifyBlack = '#191414';
+const spotifyWhite = '#FFFFFF';
+const spotifyGray = '#b3b3b3';
 
 const Artists = () => {
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
-  const [artists, setArtists] = useState(initialArtists);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingArtist, setEditingArtist] = useState(null);
-  const [form] = Form.useForm();
-  const searchInput = useRef(null);
+  const [artists, setArtists] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ name: '', bio: '', image: null });
+  const [preview, setPreview] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredArtists, setFilteredArtists] = useState([]);
 
-  const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
+  const fetchArtists = async () => {
+    try {
+      const res = await ArtistService.getAll();
+      setArtists(res.data.results);
+    } catch (err) {
+      console.error('Failed to fetch artists', err);
+    }
   };
 
-  const handleReset = (clearFilters) => {
-    clearFilters();
-    setSearchText('');
+  useEffect(() => {
+    fetchArtists();
+  }, []);
+
+  useEffect(() => {
+    // Filter artists based on searchTerm
+    const results = artists.filter(artist =>
+      artist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      artist.bio.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredArtists(results);
+  }, [searchTerm, artists]);
+
+  const handleOpen = (artist = null) => {
+    if (artist) {
+      setForm({ name: artist.name, bio: artist.bio, image: null });
+      setPreview(artist.image || null);
+      setEditingId(artist.id);
+    } else {
+      setForm({ name: '', bio: '', image: null });
+      setPreview(null);
+      setEditingId(null);
+    }
+    setOpen(true);
   };
 
-  const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-      <div className="p-4 rounded-md shadow-md bg-white">
-        <Input
-          ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-          className="mb-2 block rounded-md border-gray-300 focus:border-green-500 focus:ring-green-500"
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            className="bg-green-500 hover:bg-green-600 text-white rounded-md font-semibold shadow-sm"
-          >
-            Search
-          </Button>
-          <Button onClick={() => handleReset(clearFilters)} size="small" className="rounded-md border border-gray-300 shadow-sm hover:bg-gray-100">
-            Reset
-          </Button>
-          <Button type="link" size="small" onClick={close} className="text-green-500 hover:text-green-600">
-            Close
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered) => (
-      <SearchOutlined style={{ color: filtered ? '#52c41a' : undefined }} />
-    ),
-    onFilter: (value, record) =>
-      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
-  });
-
-  const handleAdd = () => {
-    setEditingArtist(null);
-    form.resetFields();
-    setIsModalOpen(true);
+  const handleClose = () => {
+    setOpen(false);
+    setForm({ name: '', bio: '', image: null });
+    setPreview(null);
+    setEditingId(null);
   };
 
-  const handleEdit = (record) => {
-    setEditingArtist(record);
-    form.setFieldsValue(record);
-    setIsModalOpen(true);
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === 'image') {
+      const file = files[0];
+      setForm(prev => ({ ...prev, image: file }));
+      setPreview(URL.createObjectURL(file));
+    } else if (name === 'searchTerm') {
+      setSearchTerm(value);
+    } else {
+      setForm(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleDelete = (id) => {
-    setArtists(artists.filter((artist) => artist.id !== id));
-    message.success('Artist deleted successfully');
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append('name', form.name);
+    formData.append('bio', form.bio);
+    if (form.image) formData.append('image', form.image);
+
+    try {
+      if (editingId) {
+        await ArtistService.update(editingId, formData);
+      } else {
+        await ArtistService.create(formData);
+      }
+      fetchArtists();
+      handleClose();
+    } catch (err) {
+      console.error('Error saving artist:', err);
+    }
   };
 
-  const handleOk = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        if (editingArtist) {
-          setArtists(
-            artists.map((artist) =>
-              artist.id === editingArtist.id ? { ...editingArtist, ...values } : artist
-            )
-          );
-          message.success('Artist updated successfully');
-        } else {
-          const newArtist = {
-            id: nextId++,
-            ...values,
-          };
-          setArtists([...artists, newArtist]);
-          message.success('Artist added successfully');
-        }
-        setIsModalOpen(false);
-        form.resetFields();
-      })
-      .catch((info) => {
-        console.log('Validate Failed:', info);
-      });
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this artist?')) return;
+    try {
+      await ArtistService.delete(id);
+      fetchArtists();
+    } catch (err) {
+      console.error('Error deleting artist:', err);
+    }
   };
-
-  const handleCancel = () => {
-    setIsModalOpen(false);
-    form.resetFields();
-  };
-
-  const columns = [
-    {
-      title: '#',
-      dataIndex: 'id',
-      key: 'id',
-      sorter: (a, b) => a.id - b.id,
-      className: 'bg-gray-50',
-    },
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      ...getColumnSearchProps('name'),
-      sorter: (a, b) => a.name.localeCompare(b.name),
-      className: 'bg-gray-50',
-    },
-    {
-      title: 'Genre',
-      dataIndex: 'genre',
-      key: 'genre',
-      ...getColumnSearchProps('genre'),
-      sorter: (a, b) => a.genre.localeCompare(b.genre),
-      className: 'bg-gray-50',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space size="middle">
-          <Button
-            icon={<EditOutlined />}
-            size="small"
-            onClick={() => handleEdit(record)}
-            className="border-green-500 hover:bg-green-100 text-green-500 rounded-md font-semibold shadow-sm"
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            size="small"
-            onClick={() => handleDelete(record.id)}
-            className="text-red-500 hover:bg-red-100 border-red-500 rounded-md font-semibold shadow-sm"
-          />
-        </Space>
-      ),
-      className: 'bg-gray-50',
-    },
-  ];
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <Title level={2} className="text-gray-800 font-semibold mb-1">
-            Artist Management
-          </Title>
-          <Text className="text-gray-600">Manage the artists in your music library.</Text>
-        </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-          className="bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full normal-case shadow-md"
-        >
-          Add New Artist
+    <Box p={4} sx={{ backgroundColor: spotifyWhite, minHeight: '100vh' }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', color: spotifyGreen }}>Artists</Typography>
+        <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()} sx={{ backgroundColor: spotifyGreenLight, color: spotifyWhite, '&:hover': { backgroundColor: '#178c42' } }}>
+          Add Artist
         </Button>
-      </div>
+      </Box>
 
-      {/* Table Section */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-        <Table
-          columns={columns}
-          dataSource={artists}
-          rowKey="id"
-          pagination={{ pageSize: 10 }}
-          className="ant-table-wrapper" // For potential Ant Design customization
-        />
-      </div>
+      <TextField
+        fullWidth
+        label="Search artists"
+        name="searchTerm"
+        value={searchTerm}
+        onChange={handleChange}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search sx={{ color: spotifyBlack }} />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ mb: 2 }}
+      />
 
-      {/* Modal for Add/Edit Artist */}
-      <Modal
-        title={editingArtist ? 'Edit Artist' : 'Add New Artist'}
-        open={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        footer={[
-          <Button key="cancel" onClick={handleCancel} className="rounded-md border border-gray-300 shadow-sm hover:bg-gray-100">
-            Cancel
-          </Button>,
-          <Button
-            key="submit"
-            type="primary"
-            onClick={handleOk}
-            className="bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md shadow-md"
-          >
-            {editingArtist ? 'Update' : 'Add'}
-          </Button>,
-        ]}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
+      <TableContainer sx={{ backgroundColor: spotifyWhite }}>
+        <Table>
+          <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
+            <TableRow>
+              <TableCell sx={{ color: spotifyBlack }}>Avatar</TableCell>
+              <TableCell sx={{ color: spotifyBlack }}>Name</TableCell>
+              <TableCell sx={{ color: spotifyBlack }}>Bio</TableCell>
+              <TableCell align="right" sx={{ color: spotifyBlack }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredArtists.map((artist) => (
+              <TableRow key={artist.id}>
+                <TableCell>
+                  <Avatar src={artist.image} alt={artist.name} />
+                </TableCell>
+                <TableCell sx={{ color: spotifyBlack }}>{artist.name}</TableCell>
+                <TableCell sx={{ color: spotifyBlack }}>{artist.bio}</TableCell>
+                <TableCell align="right">
+                  <IconButton onClick={() => handleOpen(artist)} sx={{ color: spotifyBlack }}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton color="error" onClick={() => handleDelete(artist.id)}>
+                    <Delete />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+            {filteredArtists.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} sx={{ textAlign: 'center', color: spotifyBlack }}>
+                  No artists found matching the search.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Dialog for Create/Edit */}
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ color: spotifyBlack, backgroundColor: '#f0f0f0' }}>{editingId ? 'Edit Artist' : 'Add Artist'}</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Name"
             name="name"
-            label={<Text className="font-semibold text-gray-700">Name</Text>}
-            rules={[{ required: true, message: 'Please enter the artist name!' }]}
-          >
-            <Input placeholder="Artist Name" className="rounded-md border-gray-300 focus:border-green-500 focus:ring-green-500" />
-          </Form.Item>
-          <Form.Item
-            name="genre"
-            label={<Text className="font-semibold text-gray-700">Genre</Text>}
-            rules={[{ required: true, message: 'Please enter the artist genre!' }]}
-          >
-            <Input placeholder="Genre (e.g., Pop, R&B, Alternative)" className="rounded-md border-gray-300 focus:border-green-500 focus:ring-green-500" />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+            value={form.name}
+            onChange={handleChange}
+          />
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Bio"
+            name="bio"
+            multiline
+            rows={4}
+            value={form.bio}
+            onChange={handleChange}
+          />
+          <Button component="label" variant="outlined" sx={{ mt: 2, color: spotifyBlack, borderColor: spotifyBlack, '&:hover': { borderColor: spotifyGreenLight, color: spotifyGreenLight } }}>
+            Upload Image
+            <input type="file" name="image" accept="image/*" hidden onChange={handleChange} />
+          </Button>
+          {preview && (
+            <Box mt={2}>
+              <Typography variant="body2" sx={{ color: spotifyBlack }}>Preview:</Typography>
+              <img src={preview} alt="preview" height="100" style={{ borderRadius: '4px' }} />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ backgroundColor: '#f0f0f0' }}>
+          <Button onClick={handleClose} sx={{ color: spotifyBlack, '&:hover': { color: spotifyGreenLight } }}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained" sx={{ backgroundColor: spotifyGreenLight, color: spotifyWhite, '&:hover': { backgroundColor: '#178c42' } }}>
+            {editingId ? 'Update' : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 
