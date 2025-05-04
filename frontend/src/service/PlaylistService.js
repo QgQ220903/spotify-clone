@@ -5,7 +5,7 @@ import axiosInstance from "../api/axiosInstance";
 // src/service/albumService.js
 export const createPlaylistAPI = async (obj) => {
   try {
-    const response = await axiosInstance.post("/music/playlist/",obj);
+    const response = await axiosInstance.post("/music/playlists/",obj);
     return response;
   } catch (error) {
     console.error("Error fetching all albums:", error);
@@ -20,6 +20,19 @@ export const fetchAllPlaylist = async () => {
     // Kiểm tra cả response.data.results và response.data
     return response;
   } catch (error) {
+
+    console.error("Error fetching all songs:", error);
+    return [];
+  }
+};
+
+
+export const fetchAllPlaylistById = async (id) => {
+  try {
+    const response = await axiosInstance.get("/music/playlists/"+id+'/');
+    return response;
+  } catch (error) {
+
     console.error("Error fetching all songs:", error);
     return [];
   }

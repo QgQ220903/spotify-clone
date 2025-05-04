@@ -1,23 +1,32 @@
 import React, { use, useEffect, useState } from "react";
 import { assets } from "../assets/assets";
 import {  createPlaylistAPI, fetchAllPlaylist } from "../service/PlaylistService";
+import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [playlists, setPlaylists] = useState([]);
+    const [count, setCount] = useState(0);
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);
     };
 
+    const navigate = useNavigate();
     useEffect(()=>{
         fetchAllPlaylist().then((res)=>{
             if(res.status == 200 && res.data && res.data.results) 
             {
               setPlaylists(res.data.results);
+              setCount(res.data.count)
             }
     })
     },[])
 
+
+
+
+
+   
     if (isCollapsed) {
         return (
             <div className='bg-[#121212] w-[80px] h-full flex-col text-white hidden lg:flex items-center pt-3 gap-4'>
@@ -55,14 +64,21 @@ const Sidebar = () => {
     const handleCreatePlaylist = ()=>{
         var tmp = {
             songs:[],
-            name:'a',
+            name:'Danh sách phát của tôi #'+count,
             is_public:true,
             user: localStorage.getItem('userId')
 
         }
 
         createPlaylistAPI(tmp).then((res)=>{
-            console.log('res playlist:',res)
+            console.log('res playlist:',res);
+            if(res.status == 201 && res.data)
+            {
+                setPlaylists(prev => [...prev,res.data])
+                setCount(playlists.length+1)
+
+            }
+            
         })
     }
     return (
@@ -128,7 +144,8 @@ const Sidebar = () => {
 
                 {/* Other playlists */}
                 {playlists && playlists.map((playlist, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 mx-2 rounded-lg hover:bg-[#2a2a2a] cursor-pointer">
+                    <div onClick={()=>{navigate('/playlists/' + playlist.id)}} key={index} className="flex items-center gap-3 p-3 mx-2 rounded-lg hover:bg-[#2a2a2a] cursor-pointer">
+                        
                         <div className="bg-[#282828] w-12 h-12 rounded flex items-center justify-center">
                             <img src={assets.music_icon} className="w-5 h-5 opacity-70" alt="Playlist" />
                         </div>
