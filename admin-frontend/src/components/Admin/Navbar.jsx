@@ -1,121 +1,121 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Dropdown, Menu, Button, Divider, Tooltip, Badge } from 'antd';
 import {
-  BellOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  DownOutlined,
-  QuestionCircleOutlined,
-} from '@ant-design/icons';
+  AppBar,
+  Toolbar,
+  Avatar,
+  Menu,
+  MenuItem,
+  Divider,
+  Typography,
+  Box,
+  Button
+} from '@mui/material';
+import {
+  Logout as LogoutIcon,
+  Settings as SettingsIcon,
+  ArrowDropDown as ArrowDropDownIcon
+} from '@mui/icons-material';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleOpenMenu = (event) => setAnchorEl(event.currentTarget);
+  const handleCloseMenu = () => setAnchorEl(null);
 
   const handleLogout = () => {
+    handleCloseMenu();
     navigate('/login');
   };
 
-  const menu = (
-    <Menu className="bg-white border border-gray-200 rounded-md shadow-lg w-56">
-      {/* User Profile Section */}
-      <Menu.Item disabled className="!px-4 !py-3 !h-auto hover:!bg-gray-50">
-        <div className="flex items-center gap-3">
-          <Avatar
-            size={40}
-            className="bg-green-500 text-white font-medium"
-          >
+  return (
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        backgroundColor: '#fff',
+        borderBottom: '1px solid #e0e0e0',
+        color: '#333',
+        zIndex: 1201, // ensure above drawer/sidebar
+      }}
+    >
+      <Toolbar sx={{ justifyContent: 'flex-end', minHeight: 64, px: 3 }}>
+        {/* Profile Dropdown */}
+        <Button
+          onClick={handleOpenMenu}
+          sx={{
+            textTransform: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            p: 0.5,
+            borderRadius: 2,
+            '&:hover': {
+              backgroundColor: '#f5f5f5',
+            },
+          }}
+        >
+          <Avatar sx={{ width: 32, height: 32, bgcolor: '#1DB954', fontWeight: 500 }}>
             AU
           </Avatar>
-          <div className="flex flex-col">
-            <span className="text-gray-800 font-semibold">Admin User</span>
-            <span className="text-gray-500 text-xs">admin@example.com</span>
-          </div>
-        </div>
-      </Menu.Item>
-      <Divider className="!my-2 !bg-gray-200" />
-
-      {/* Menu Items */}
-      <Menu.Item
-        key="settings"
-        className="!px-4 !py-2 !h-10 text-gray-700 hover:!bg-gray-50 hover:!text-green-500"
-      >
-        <div className="flex items-center gap-3">
-          <SettingOutlined className="text-lg text-gray-500" />
-          <span>Settings</span>
-        </div>
-      </Menu.Item>
-      <Menu.Item
-        key="help"
-        className="!px-4 !py-2 !h-10 text-gray-700 hover:!bg-gray-50 hover:!text-green-500"
-      >
-        <div className="flex items-center gap-3">
-          <QuestionCircleOutlined className="text-lg text-gray-500" />
-          <span>Help</span>
-        </div>
-      </Menu.Item>
-      <Divider className="!my-2 !bg-gray-200" />
-      <Menu.Item
-        key="logout"
-        onClick={handleLogout}
-        className="!px-4 !py-2 !h-10 text-gray-700 hover:!bg-gray-50 hover:!text-red-500"
-      >
-        <div className="flex items-center gap-3">
-          <LogoutOutlined className="text-lg text-gray-500" />
-          <span>Log out</span>
-        </div>
-      </Menu.Item>
-    </Menu>
-  );
-
-  return (
-    <div className="w-full bg-white h-16 border-b border-gray-200 flex items-center justify-end px-6 sticky top-0 z-50 shadow-sm">
-      {/* Right side controls */}
-      <div className="flex items-center gap-4">
-        {/* Help Button */}
-        <Tooltip title="Help" placement="bottom">
-          <Button
-            type="text"
-            icon={<QuestionCircleOutlined className="text-gray-500 text-lg" />}
-            className="!w-10 !h-10 flex items-center justify-center hover:!bg-gray-100 hover:!text-green-500"
+          <ArrowDropDownIcon
+            sx={{
+              transition: 'transform 0.2s',
+              transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+              color: '#666',
+            }}
           />
-        </Tooltip>
+        </Button>
 
-        {/* Notifications with badge */}
-        <Tooltip title="Notifications" placement="bottom">
-          <Badge count={5} color="#52c41a">
-            <Button
-              type="text"
-              icon={<BellOutlined className="text-gray-500 text-lg" />}
-              className="!w-10 !h-10 flex items-center justify-center hover:!bg-gray-100 hover:!text-green-500"
-            />
-          </Badge>
-        </Tooltip>
-
-        {/* User dropdown */}
-        <Dropdown
-          overlay={menu}
-          trigger={['click']}
-          placement="bottomRight"
-          open={dropdownOpen}
-          onOpenChange={(open) => setDropdownOpen(open)}
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleCloseMenu}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          PaperProps={{
+            elevation: 4,
+            sx: { width: 240, mt: 1 },
+          }}
         >
-          <Button
-            type="text"
-            className="!h-10 !px-2 !py-1 flex items-center gap-2 hover:!bg-gray-100"
-          >
-            <Avatar
-              size={32}
-              className="!bg-gray-300 !text-gray-800 font-medium"
-            >
-              AU
-            </Avatar>
-            <DownOutlined className={`text-gray-500 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-          </Button>
-        </Dropdown>
-      </div>
-    </div>
+          <MenuItem disabled>
+            <Box display="flex" alignItems="center" gap={2}>
+              <Avatar sx={{ width: 40, height: 40, bgcolor: '#1DB954' }}>AU</Avatar>
+              <Box>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Admin User
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  admin@example.com
+                </Typography>
+              </Box>
+            </Box>
+          </MenuItem>
+
+          <Divider sx={{ my: 1 }} />
+
+          <MenuItem onClick={handleCloseMenu}>
+            <SettingsIcon fontSize="small" sx={{ mr: 1, color: '#666' }} />
+            Settings
+          </MenuItem>
+
+          <Divider sx={{ my: 1 }} />
+
+          <MenuItem onClick={handleLogout} sx={{ color: '#d32f2f' }}>
+            <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+            Log out
+          </MenuItem>
+        </Menu>
+      </Toolbar>
+    </AppBar>
   );
 };
 

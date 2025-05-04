@@ -18,7 +18,7 @@ User = get_user_model()
 class UserCreateView(generics.CreateAPIView):
     """View for user registration"""
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserSerializer  # Sử dụng UserSerializer thay vì AdminUserSerializer
     permission_classes = [permissions.AllowAny]
 
 class UserDetailView(generics.RetrieveUpdateAPIView):
@@ -51,17 +51,15 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     """Custom JWT token view with user type information"""
     serializer_class = CustomTokenObtainPairSerializer
 
-class AdminUserListView(generics.ListAPIView):
-    """View for admin to list all users"""
+class AdminUserListView(generics.ListCreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
-
+    serializer_class = AdminUserSerializer  # nên dùng AdminUserSerializer để admin có quyền tạo đúng
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    
 class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """View for admin to manage individual users"""
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
 class SetUserTypeView(APIView):
     """View for admin to set user type"""

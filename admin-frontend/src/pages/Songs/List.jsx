@@ -1,291 +1,262 @@
-import React, { useState, useRef } from 'react';
-import { Table, Input, Button, Space, Typography, Modal, Form, message, InputNumber } from 'antd';
-import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import {
+  Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  TextField, Typography, IconButton, InputAdornment, MenuItem,
+  Select, FormControl, InputLabel, OutlinedInput, Chip
+} from '@mui/material';
+import { Add, Edit, Delete, Search } from '@mui/icons-material';
+import SongService from '../../services/SongService';
+import ArtistService from '../../services/ArtistService';
+import AlbumService from '../../services/AlbumService';
 
-const { Title, Text } = Typography;
+const spotifyGreen = '#1DB954';
+const spotifyBlack = '#191414';
+const spotifyWhite = '#FFFFFF';
+const spotifyGray = '#b3b3b3';
 
-const initialSongs = [
-  { id: 1, title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20', plays: 2456789123 },
-  { id: 2, title: 'Save Your Tears', artist: 'The Weeknd', duration: '3:35', plays: 1789456123 },
-  { id: 3, title: 'Stay', artist: 'The Kid LAROI, Justin Bieber', duration: '2:21', plays: 1567891234 },
-  { id: 4, title: 'good 4 u', artist: 'Olivia Rodrigo', duration: '2:58', plays: 1345678912 },
-  { id: 5, title: 'Levitating', artist: 'Dua Lipa', duration: '3:23', plays: 1234567890 },
-];
 
-let nextId = initialSongs.length + 1;
-
-const Songs = () => {
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
-  const [songs, setSongs] = useState(initialSongs);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const SongList = () => {
+  const [songs, setSongs] = useState([]);
+  const [artists, setArtists] = useState([]);
+  const [albums, setAlbums] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [open, setOpen] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
-  const [form] = Form.useForm();
-  const searchInput = useRef(null);
-
-  const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
-  };
-
-  const handleReset = (clearFilters) => {
-    clearFilters();
-    setSearchText('');
-  };
-
-  const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-      <div className="p-4 rounded-md shadow-md bg-white">
-        <Input
-          ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-          className="mb-2 block rounded-md border-gray-300 focus:border-green-500 focus:ring-green-500"
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            className="bg-green-500 hover:bg-green-600 text-white rounded-md font-semibold shadow-sm"
-          >
-            Search
-          </Button>
-          <Button onClick={() => handleReset(clearFilters)} size="small" className="rounded-md border border-gray-300 shadow-sm hover:bg-gray-100">
-            Reset
-          </Button>
-          <Button type="link" size="small" onClick={close} className="text-green-500 hover:text-green-600">
-            Close
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered) => (
-      <SearchOutlined style={{ color: filtered ? '#52c41a' : undefined }} />
-    ),
-    onFilter: (value, record) =>
-      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+  const [form, setForm] = useState({
+    title: '',
+    album: '',
+    artists: [],
+    duration: '',
+    audio_file: null,
+    video_file: null,
+    thumbnail: null,
+    plays_count: 0,
   });
 
-  const handleAdd = () => {
-    setEditingSong(null);
-    form.resetFields();
-    setIsModalOpen(true);
+  const fetchData = async () => {
+    const [songRes, artistRes, albumRes] = await Promise.all([
+      SongService.getAll(),
+      ArtistService.getAll(),
+      AlbumService.getAll()
+    ]);
+    setSongs(songRes.data.results);
+    setArtists(artistRes.data.results);
+    setAlbums(albumRes.data.results);
   };
 
-  const handleEdit = (record) => {
-    setEditingSong(record);
-    form.setFieldsValue(record);
-    setIsModalOpen(true);
-  };
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const handleDelete = (id) => {
-    setSongs(songs.filter((song) => song.id !== id));
-    message.success('Song deleted successfully');
-  };
-
-  const handleOk = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        if (editingSong) {
-          setSongs(
-            songs.map((song) =>
-              song.id === editingSong.id ? { ...editingSong, ...values } : song
-            )
-          );
-          message.success('Song updated successfully');
-        } else {
-          const newSong = {
-            id: nextId++,
-            ...values,
-          };
-          setSongs([...songs, newSong]);
-          message.success('Song added successfully');
-        }
-        setIsModalOpen(false);
-        form.resetFields();
-      })
-      .catch((info) => {
-        console.log('Validate Failed:', info);
+  const handleOpen = (song = null) => {
+    if (song) {
+      setForm({
+        title: song.title,
+        album: song.album?.id || '', // nếu album là object thì lấy id
+        artists: song.artists?.map(artist => artist.id) || [],
+        duration: song.duration,
+        audio_file: null,
+        video_file: null,
+        thumbnail: null,
+        plays_count: song.plays_count || 0,
       });
+      setEditingSong(song);
+    } else {
+      setForm({
+        title: '',
+        album: '',
+        artists: [],
+        duration: '',
+        audio_file: null,
+        video_file: null,
+        thumbnail: null,
+        plays_count: 0,
+      });
+      setEditingSong(null);
+    }
+    setOpen(true);
   };
 
-  const handleCancel = () => {
-    setIsModalOpen(false);
-    form.resetFields();
+  const handleClose = () => {
+    setOpen(false);
+    setEditingSong(null);
   };
 
-  const columns = [
-    {
-      title: '#',
-      dataIndex: 'id',
-      key: 'id',
-      sorter: (a, b) => a.id - b.id,
-      className: 'bg-gray-50',
-    },
-    {
-      title: 'Title',
-      dataIndex: 'title',
-      key: 'title',
-      ...getColumnSearchProps('title'),
-      render: (text) => (
-        <div className="flex items-center">
-          <span className="mr-2 text-green-500">
-            <svg viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4">
-              <path d="M8 3a5 5 0 0 0-5 5v5h1v-5a4 4 0 0 1 4-4 4 4 0 0 1 4 4v5h1v-5a5 5 0 0 0-5-5z" />
-              <path d="M13 10v3h-1v-3a2 2 0 0 0-2-2 2 2 0 0 0-2 2v3h-1v-3a3 3 0 0 1 3-3 3 3 0 0 1 3 3z" />
-            </svg>
-          </span>
-          {text}
-        </div>
-      ),
-      sorter: (a, b) => a.title.localeCompare(b.title),
-      className: 'bg-gray-50',
-    },
-    {
-      title: 'Artist',
-      dataIndex: 'artist',
-      key: 'artist',
-      ...getColumnSearchProps('artist'),
-      sorter: (a, b) => a.artist.localeCompare(b.artist),
-      className: 'bg-gray-50',
-    },
-    {
-      title: 'Duration',
-      dataIndex: 'duration',
-      key: 'duration',
-      sorter: (a, b) => {
-        const timeA = a.duration.split(':').reduce((acc, curr) => acc * 60 + parseInt(curr), 0);
-        const timeB = b.duration.split(':').reduce((acc, curr) => acc * 60 + parseInt(curr), 0);
-        return timeA - timeB;
-      },
-      className: 'bg-gray-50',
-    },
-    {
-      title: 'Plays',
-      dataIndex: 'plays',
-      key: 'plays',
-      sorter: (a, b) => a.plays - b.plays,
-      className: 'bg-gray-50',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space size="middle">
-          <Button
-            icon={<EditOutlined />}
-            size="small"
-            onClick={() => handleEdit(record)}
-            className="border-green-500 hover:bg-green-100 text-green-500 rounded-md font-semibold shadow-sm"
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            size="small"
-            onClick={() => handleDelete(record.id)}
-            className="text-red-500 hover:bg-red-100 border-red-500 rounded-md font-semibold shadow-sm"
-          />
-        </Space>
-      ),
-      className: 'bg-gray-50',
-    },
-  ];
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    setForm(prev => ({ ...prev, [name]: files[0] }));
+  };
+
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append('title', form.title);
+    formData.append('duration', form.duration);
+    formData.append('plays_count', form.plays_count);
+    if (form.album) formData.append('album_id', form.album);
+    console.log(artists)
+    form.artists.forEach(id => formData.append('artists_ids', id));
+    if (form.audio_file) formData.append('audio_file', form.audio_file);
+    if (form.video_file) formData.append('video_file', form.video_file);
+    if (form.thumbnail) formData.append('thumbnail', form.thumbnail);
+
+    try {
+      if (editingSong) {
+        await SongService.update(editingSong.id, formData);
+      } else {
+        await SongService.create(formData);
+      }
+      fetchData();
+      handleClose();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Bạn có chắc muốn xoá bài hát này?')) {
+      await SongService.delete(id);
+      fetchData();
+    }
+  };
+  console.log(songs);
+  const filteredSongs = songs.filter(song =>
+    song.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <Title level={2} className="text-gray-800 font-semibold mb-1">
-            Song Management
-          </Title>
-          <Text className="text-gray-600">Manage the songs in your music library.</Text>
-        </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-          className="bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full normal-case shadow-md"
-        >
-          Add New Song
+    <Box p={4} sx={{ backgroundColor: '#FFFFFF', minHeight: '100vh' }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 'bold', color: spotifyGreen }}>Songs</Typography>
+          {/* <Typography variant="body2" color="textSecondary">Thêm, sửa, xoá bài hát</Typography> */}
+        </Box>
+        <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()} sx={{ backgroundColor: '#1DB954' }}>
+          Thêm bài hát
         </Button>
-      </div>
+      </Box>
 
-      {/* Table Section */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-        <Table
-          columns={columns}
-          dataSource={songs}
-          rowKey="id"
-          pagination={{ pageSize: 10 }}
-          className="ant-table-wrapper"
-        />
-      </div>
+      <TextField
+        fullWidth
+        variant="outlined"
+        label="Tìm kiếm bài hát"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ mb: 2 }}
+      />
 
-      {/* Modal for Add/Edit Song */}
-      <Modal
-        title={editingSong ? 'Edit Song' : 'Add New Song'}
-        open={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        footer={[
-          <Button key="cancel" onClick={handleCancel} className="rounded-md border border-gray-300 shadow-sm hover:bg-gray-100">
-            Cancel
-          </Button>,
-          <Button
-            key="submit"
-            type="primary"
-            onClick={handleOk}
-            className="bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md shadow-md"
-          >
-            {editingSong ? 'Update' : 'Add'}
-          </Button>,
-        ]}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="title"
-            label={<Text className="font-semibold text-gray-700">Title</Text>}
-            rules={[{ required: true, message: 'Please enter the song title!' }]}
-          >
-            <Input placeholder="Song Title" className="rounded-md border-gray-300 focus:border-green-500 focus:ring-green-500" />
-          </Form.Item>
-          <Form.Item
-            name="artist"
-            label={<Text className="font-semibold text-gray-700">Artist</Text>}
-            rules={[{ required: true, message: 'Please enter the artist name!' }]}
-          >
-            <Input placeholder="Artist Name" className="rounded-md border-gray-300 focus:border-green-500 focus:ring-green-500" />
-          </Form.Item>
-          <Form.Item
-            name="duration"
-            label={<Text className="font-semibold text-gray-700">Duration (mm:ss)</Text>}
-            rules={[
-              { required: true, message: 'Please enter the duration!' },
-              {
-                pattern: /^\d{2}:\d{2}$/,
-                message: 'Please enter a valid duration in mm:ss format!',
-              },
-            ]}
-          >
-            <Input placeholder="e.g., 03:30" className="rounded-md border-gray-300 focus:border-green-500 focus:ring-green-500" />
-          </Form.Item>
-          <Form.Item
-            name="plays"
-            label={<Text className="font-semibold text-gray-700">Plays</Text>}
-            rules={[{ required: true, message: 'Please enter the number of plays!' }]}
-          >
-            <InputNumber min={0} placeholder="Number of Plays" style={{ width: '100%' }} className="rounded-md border-gray-300 focus:border-green-500 focus:ring-green-500" />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+      <TableContainer>
+        <Table>
+          <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
+            <TableRow>
+              <TableCell>#</TableCell>
+              <TableCell>Tên</TableCell>
+              <TableCell>Nghệ sĩ</TableCell>
+              <TableCell>Thời lượng</TableCell>
+              <TableCell>Lượt nghe</TableCell>
+              <TableCell align="right">Hành động</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredSongs.map((song, index) => (
+              <TableRow key={song.id}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{song.title}</TableCell>
+                <TableCell>{song.artists.map(a => a.name).join(', ')}</TableCell>
+                <TableCell>{song.duration}</TableCell>
+                <TableCell>{song.plays_count.toLocaleString()}</TableCell>
+                <TableCell align="right">
+                  <IconButton onClick={() => handleOpen(song)}><Edit /></IconButton>
+                  <IconButton color="error" onClick={() => handleDelete(song.id)}><Delete /></IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+            {filteredSongs.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} align="center">Không tìm thấy bài hát</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle>{editingSong ? 'Sửa bài hát' : 'Thêm bài hát'}</DialogTitle>
+        <DialogContent>
+          <TextField fullWidth margin="normal" label="Tên bài hát" name="title" value={form.title} onChange={handleChange} />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Nghệ sĩ</InputLabel>
+            <Select
+              multiple
+              name="artists"
+              value={form.artists}
+              onChange={handleChange}
+              input={<OutlinedInput label="Nghệ sĩ" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((id) => {
+                    const artist = artists.find(a => a.id === id);
+                    return <Chip key={id} label={artist?.name || id} />;
+                  })}
+                </Box>
+              )}
+            >
+              {artists.map((artist) => (
+                <MenuItem key={artist.id} value={artist.id}>
+                  {artist.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Album</InputLabel>
+            <Select name="album" value={form.album} onChange={handleChange} displayEmpty>
+              <MenuItem value=""></MenuItem>
+              {albums.map(album => (
+                <MenuItem key={album.id} value={album.id}>{album.title}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <TextField fullWidth margin="normal" label="Thời lượng (HH:MM:SS)" name="duration" value={form.duration} onChange={handleChange} />
+          <TextField fullWidth margin="normal" label="Lượt nghe" name="plays_count" type="number" value={form.plays_count} onChange={handleChange} />
+
+          <Typography mt={2}>Tập tin:</Typography>
+          <Button component="label" fullWidth>
+            File âm thanh
+            <input type="file" name="audio_file" hidden onChange={handleFileChange} />
+          </Button>
+          <Button component="label" fullWidth>
+            File video (tuỳ chọn)
+            <input type="file" name="video_file" hidden onChange={handleFileChange} />
+          </Button>
+          <Button component="label" fullWidth>
+            Hình đại diện (tuỳ chọn)
+            <input type="file" name="thumbnail" hidden onChange={handleFileChange} />
+          </Button>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Huỷ</Button>
+          <Button variant="contained" onClick={handleSubmit} sx={{ backgroundColor: '#1DB954' }}>
+            {editingSong ? 'Cập nhật' : 'Thêm'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 
-export default Songs;
+export default SongList;

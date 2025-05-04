@@ -1,66 +1,109 @@
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
+  Box,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  Divider
+} from '@mui/material';
+import {
   HomeOutlined,
-  UserOutlined,
-  CustomerServiceOutlined,
-  AppstoreOutlined,
-  HeartOutlined,
-} from '@ant-design/icons';
+  PersonOutline,
+  LibraryMusicOutlined,
+  AlbumOutlined,
+  FavoriteBorderOutlined,
+} from '@mui/icons-material';
+
+const drawerWidth = 240;
 
 const navItems = [
   { to: '/', icon: <HomeOutlined />, label: 'Home' },
-  { to: '/users', icon: <UserOutlined />, label: 'Users' },
-  { to: '/songs', icon: <CustomerServiceOutlined />, label: 'Songs' },
-  { to: '/albums', icon: <AppstoreOutlined />, label: 'Albums' },
-  { to: '/artists', icon: <HeartOutlined />, label: 'Artists' },
+  { to: '/users', icon: <PersonOutline />, label: 'Users' },
+  { to: '/songs', icon: <LibraryMusicOutlined />, label: 'Songs' },
+  { to: '/albums', icon: <AlbumOutlined />, label: 'Albums' },
+  { to: '/artists', icon: <FavoriteBorderOutlined />, label: 'Artists' },
 ];
 
 const Sidebar = () => {
   return (
-    <div className="w-[240px] bg-black h-screen flex flex-col border-r border-[#282828]">
-      {/* Logo Spotify thực tế */}
-      <div className="p-6 pb-8">
-        <div className="flex items-center">
-          <img
-            src="https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_White.png"
-            alt="Spotify Logo"
-            className="h-10"
-          />
-          <span className="ml-2 text-white font-bold text-lg">Admin</span>
-        </div>
-      </div>
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        [`& .MuiDrawer-paper`]: {
+          width: drawerWidth,
+          boxSizing: 'border-box',
+          backgroundColor: '#fff',
+          color: '#333',
+          borderRight: '1px solid #e0e0e0',
+        },
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '16px',
+          borderBottom: '1px solid #e0e0e0',
+        }}
+      >
+        <img
+          src="https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_Green.png"
+          alt="Spotify Logo"
+          style={{ height: 32 }}
+        />
+        <Typography variant="h6" sx={{ color: '#1DB954', marginLeft: 1, fontWeight: 700 }}>
+          Admin
+        </Typography>
+      </Box>
 
-      {/* Navigation Items */}
-      <nav className="flex flex-col gap-1 px-2">
+      <List>
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
-            className={({ isActive }) =>
-              `flex items-center gap-4 px-4 py-3 rounded-md text-sm transition-all duration-200 ${isActive
-                ? 'bg-[#282828] text-white font-semibold'
-                : 'text-[#b3b3b3] hover:text-white hover:bg-[#282828]'
-              }`
-            }
+            style={{ textDecoration: 'none', color: 'inherit' }}
           >
             {({ isActive }) => (
-              <>
-                <span className={`text-xl ${isActive ? 'text-[#1DB954]' : 'text-inherit'}`}>
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
-              </>
+              <ListItem disablePadding>
+                <ListItemButton
+                  sx={{
+                    backgroundColor: isActive ? '#E8F5E9' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: '#F1F8E9',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ color: isActive ? '#1DB954' : '#666' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.label}
+                    primaryTypographyProps={{
+                      fontWeight: isActive ? '600' : '400',
+                      color: isActive ? '#1DB954' : 'inherit',
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
             )}
           </NavLink>
         ))}
-      </nav>
+      </List>
 
-      {/* Footer */}
-      <div className="mt-auto px-6 py-6 border-t border-[#282828] text-[#b3b3b3] text-xs">
-        <div className="mb-1">Spotify Admin Panel</div>
-        <div>© {new Date().getFullYear()} Spotify AB</div>
-      </div>
-    </div>
+      <Box sx={{ flexGrow: 1 }} />
+      <Divider />
+      <Box sx={{ padding: 2, fontSize: 12, color: '#999' }}>
+        <Typography variant="body2">Spotify Admin Panel</Typography>
+        <Typography variant="caption">© {new Date().getFullYear()} Spotify AB</Typography>
+      </Box>
+    </Drawer>
   );
 };
 
