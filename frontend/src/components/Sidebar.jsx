@@ -49,9 +49,6 @@ const Sidebar = () => {
         );
     }
 
-  
-
-
     const handleCreatePlaylist = ()=>{
         var tmp = {
             songs:[],
@@ -95,10 +92,6 @@ const Sidebar = () => {
                 </button>
                 <button className="text-sm px-3 py-1 rounded-full whitespace-nowrap hover:bg-[#2a2a2a] opacity-70 hover:opacity-100">
                     Album
-                </button>
-                <button className="flex items-center gap-1 text-sm px-3 py-1 rounded-full whitespace-nowrap hover:bg-[#2a2a2a] opacity-70 hover:opacity-100">
-                    <img src={assets.plus} className="w-3 h-3" alt="Add" />
-                    Tạo
                 </button>
             </div>
 
