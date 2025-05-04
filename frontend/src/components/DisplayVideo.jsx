@@ -75,7 +75,7 @@ const DisplayVideo = () => {
                             </svg>
                         </button>
 
-                        {/* Nút tải xuống (đã cập nhật dùng file-saver) */}
+                        {/* Nút tải xuống */}
                         <button
                             className="text-white p-2 rounded-full hover:bg-gray-700"
                             onClick={handleDownload}
@@ -99,7 +99,7 @@ const DisplayVideo = () => {
                     </div>
                 </div>
                 
-                {/* Ngày phát hành (nếu có) */}
+                {/* Ngày phát hành */}
                 {track.release_date && (
                     <div className="mt-3 text-sm text-gray-400">
                         {track.release_date}
