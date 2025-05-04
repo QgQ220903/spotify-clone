@@ -1,12 +1,22 @@
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { assets } from "../assets/assets";
+import {  createPlaylistAPI, fetchAllPlaylist } from "../service/PlaylistService";
 
 const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
-
+    const [playlists, setPlaylists] = useState([]);
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);
     };
+
+    useEffect(()=>{
+        fetchAllPlaylist().then((res)=>{
+            if(res.status == 200 && res.data && res.data.results) 
+            {
+              setPlaylists(res.data.results);
+            }
+    })
+    },[])
 
     if (isCollapsed) {
         return (
@@ -39,6 +49,22 @@ const Sidebar = () => {
         );
     }
 
+  
+
+
+    const handleCreatePlaylist = ()=>{
+        var tmp = {
+            songs:[],
+            name:'a',
+            is_public:true,
+            user: localStorage.getItem('userId')
+
+        }
+
+        createPlaylistAPI(tmp).then((res)=>{
+            console.log('res playlist:',res)
+        })
+    }
     return (
         <div className='bg-[#121212] w-[400px] h-full flex-col text-white hidden lg:flex rounded-lg'>
             {/* Header */}
@@ -47,7 +73,7 @@ const Sidebar = () => {
                     <p className='font-bold text-xl'>Thư viện</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="p-1 rounded-full hover:bg-[#282828]">
+                    <button className="p-1 rounded-full hover:bg-[#282828]" onClick={()=>handleCreatePlaylist()}>
                         <img src={assets.plus} className="w-5 h-5 opacity-70 hover:opacity-100" alt="Add" />
                     </button>
                     <button 
@@ -101,19 +127,14 @@ const Sidebar = () => {
                 </div>
 
                 {/* Other playlists */}
-                {[
-                    { name: "Đồng thích gì thêm vào", desc: "Danh sách phát - Dũng Lê" },
-                    { name: "SỐN HÀY", desc: "DANH SÁCH PHÁT CỦA tôi #8" },
-                    { name: "SẴU", desc: "Danh sách phát - Dũng Lê" },
-                    { name: "Đồng thích", desc: "Danh sách phát của tôi #7" },
-                ].map((playlist, index) => (
+                {playlists && playlists.map((playlist, index) => (
                     <div key={index} className="flex items-center gap-3 p-3 mx-2 rounded-lg hover:bg-[#2a2a2a] cursor-pointer">
                         <div className="bg-[#282828] w-12 h-12 rounded flex items-center justify-center">
                             <img src={assets.music_icon} className="w-5 h-5 opacity-70" alt="Playlist" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{playlist.name}</p>
-                            <p className="text-xs opacity-70 truncate">{playlist.desc}</p>
+                            {/* <p className="text-xs opacity-70 truncate">{playlist.desc}</p> */}
                         </div>
                     </div>
                 ))}

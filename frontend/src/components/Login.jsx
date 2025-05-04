@@ -20,6 +20,8 @@ function Login() {
         password,
       })
 
+      console.log('ducnc1', res);
+
       const accessToken = res.data.access
       const refreshToken = res.data.refresh
 
@@ -29,6 +31,11 @@ function Login() {
 
       // Giải mã và cập nhật user ngay lập tức
       const decoded = jwtDecode(accessToken)
+
+      const userId = decoded.user_id || decoded.sub // tuỳ thuộc vào cách backend của bạn cấu trúc token
+       localStorage.setItem('userId', userId) // Lưu cả user_id
+
+
       setUser({
         username: decoded.username,
         isAdmin: decoded.is_admin,
