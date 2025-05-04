@@ -57,7 +57,6 @@ class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
         fields = '__all__'
-        read_only_fields = ('user',)
 
 class FavoriteSerializer(serializers.ModelSerializer):
     songs = serializers.PrimaryKeyRelatedField(queryset=Song.objects.all(), many=True, required=False)
