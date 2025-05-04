@@ -139,7 +139,7 @@ class PlaylistViewSet(viewsets.ModelViewSet):
     def get_by_user(self, request):
         """
         API lấy tất cả playlist của một user cụ thể
-        URL: /api/playlists/by-user/?user_id=<user_id>
+        URL: /api/music/playlists/by-user/?user_id=<user_id>
         """
         user_id = request.query_params.get('user_id')
         if not user_id:
