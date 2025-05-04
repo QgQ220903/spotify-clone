@@ -8,9 +8,21 @@ from .serializers import (
     PlaylistSerializer, FavoriteSerializer
 )
 from django.contrib.auth import get_user_model
-
+from django.http import FileResponse
+from django.views.decorators.http import require_GET
 User = get_user_model()
+@require_GET
+def serve_video(request, video_path):
+    # Đường dẫn đầy đủ tới file
+    full_path = os.path.join(settings.MEDIA_ROOT, video_path)
+    
+    if not os.path.exists(full_path):
+        return HttpResponse(status=404)
 
+    response = FileResponse(open(full_path, 'rb'))
+    response['Content-Type'] = 'video/mp4'
+    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(full_path)}"'
+    return response
 class ArtistViewSet(viewsets.ModelViewSet):
     queryset = Artist.objects.all()
     serializer_class = ArtistSerializer

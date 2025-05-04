@@ -85,10 +85,9 @@ const DisplayAlbum = () => {
   // Phát tất cả các bài hát trong album
   const playAllSongs = () => {
     if (songs && songs.length > 0) {
-      // Phát bài đầu tiên và thiết lập danh sách phát
-      playWithSong(songs[0]);
-      // Đây bạn có thể thêm logic để đưa toàn bộ danh sách vào playlist nếu cần
-      console.log("Playing all songs in album");
+      // Phát bài đầu tiên và thiết lập toàn bộ danh sách phát
+      playWithSong(songs[0], songs);
+      console.log("Playing all songs in album:", albumData?.title);
     }
   };
 
@@ -183,24 +182,25 @@ const DisplayAlbum = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-5 mt-10 mb-4 pl-2 text-[#a7a7a7]">
+      {/* Header */}
+      <div className="grid grid-cols-[1fr_2fr_1fr_30px] mt-10 mb-4 pl-2 text-[#a7a7a7]">
         <p className="font-semibold">
-          <b className="mr-4 font-normal">#</b>Title
+          <b className="mr-8 font-normal">#</b>
+          <b className="mr-4 font-normal">Title</b>
         </p>
-        <p className="font-semibold">Album</p>
-        <p className="hidden sm:block ml-5 font-semibold">Date Added</p>
+        <p className="flex font-semibold items-center justify-center">Album</p>
         <div className="flex items-center justify-center">
           <img className="w-4" src={assets.clock} alt="" />
         </div>
-        {/* Empty header for the Add button column */}
         <div className="flex items-center justify-center"></div>
       </div>
-      <hr />
 
+      <hr />
+      {/* Table */}
       {songs.map((item, index) => (
         <div
           key={index}
-          className="group grid grid-cols-3 sm:grid-cols-5 gap-5 p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"
+          className="group grid grid-cols-[1fr_2fr_1fr_30px] p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"
         >
           <div className="flex items-center col-span-1 relative">
             {/* Play icon on hover, number when not hovering */}
@@ -236,11 +236,8 @@ const DisplayAlbum = () => {
             </div>
           </div>
           
-          <div className="col-span-1" onClick={() => playWithSong(item)}>
+          <div className="col-span-1 flex items-center justify-center" onClick={() => playWithSong(item)}>
             <p className="text-[15px] font-semibold">{albumData.title}</p>
-          </div>
-          <div className="col-span-1 hidden sm:block ml-5" onClick={() => playWithSong(item)}>
-            <p className="text-[15px] font-semibold">5 days ago</p>
           </div>
           <div className="col-span-1 flex items-center justify-center" onClick={() => playWithSong(item)}>
             <p className="text-[15px] font-semibold">
@@ -248,7 +245,7 @@ const DisplayAlbum = () => {
             </p>
           </div>
           {/* Add to playlist button column */}
-          <div className="col-span-1 flex items-center justify-center">
+          <div className="col-span-1 flex items-center justify-center ">
             <button 
               onClick={(e) => {
                 e.stopPropagation();
