@@ -23,12 +23,20 @@ function Login() {
       const accessToken = res.data.access
       const refreshToken = res.data.refresh
 
+      console.log(res.data)
+
       // Lưu vào localStorage
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
 
       // Giải mã và cập nhật user ngay lập tức
       const decoded = jwtDecode(accessToken)
+      // Giải mã access token để lấy thông tin user
+
+      // Lấy user_id từ decoded token (nếu có)
+      const userId = decoded.user_id || decoded.sub // tuỳ thuộc vào cách backend của bạn cấu trúc token
+      localStorage.setItem('userId', userId) // Lưu cả user_id
+      console.log(userId);
       setUser({
         username: decoded.username,
         isAdmin: decoded.is_admin,
