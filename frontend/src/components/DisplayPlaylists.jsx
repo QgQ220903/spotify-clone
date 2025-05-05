@@ -1,6 +1,6 @@
 import React, { useContext,useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchAllPlaylistById } from "../service/PlaylistService";
+import { fetchAllPlaylistById, getAllSongs } from "../service/PlaylistService";
 import { PlayerContext } from "../context/PlayerContextProvider";
 
 const DisplayPlaylist = () => {
@@ -8,6 +8,7 @@ const DisplayPlaylist = () => {
   const { id } = useParams();
   const [playlist, setPlaylist] = useState();
   const [songs, setSongs] = useState();
+  const [allSongs, setAllSongs] = useState();
 
   useEffect(() => {
     fetchAllPlaylistById(id).then((res) => {
@@ -17,8 +18,20 @@ const DisplayPlaylist = () => {
         setSongs(res.data.songs);
       }
     });
+
+    getAllSongs().then((res)=>{
+      console.log('tất cả bài hát:',res);
+      setAllSongs(res.data.results)
+    })
   }, [id]);
 
+
+
+  var  handleAddSongToPlayList =(id)=>
+  {
+   console.log(id);
+
+  }
   return (
     <>
       {playlist && (
@@ -133,7 +146,79 @@ const DisplayPlaylist = () => {
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
-                    console.log(`Add "${item.title}" to playlist`);
+                    handleAddSongToPlayList(item.id)
+                  }}
+                  className="hidden group-hover:block text-white opacity-70 hover:opacity-100"
+                  title="Add to playlist"
+                >
+                <div className="w-6 h-6 flex items-center justify-center border-2 border-gray-400 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 5c.55 0 1 .45 1 1v5h5c.55 0 1 .45 1 1s-.45 1-1 1h-5v5c0 .55-.45 1-1 1s-1-.45-1-1v-5H6c-.55 0-1-.45-1-1s.45-1 1-1h5V6c0-.55.45-1 1-1z"/>
+                  </svg>
+                </div>
+                </button>
+              </div>
+            </div>
+          ))}
+<h2>các bài hát khác:</h2>
+
+{allSongs && allSongs.length > 0 && songs.map((item, index) => (
+            
+            <div
+              key={index}
+              className="group grid grid-cols-[1fr_2fr_1fr_30px] p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"
+            >
+              
+              <div className="flex items-center col-span-1 relative">
+                {/* Play icon on hover, number when not hovering */}
+                
+                <div 
+                  onClick={() => playWithSong(item)}
+                  className="mr-4 w-5 h-5 flex items-center justify-center text-[#a7a7a7]"
+                >
+                  <br></br>
+                  <span className="group-hover:hidden">{index + 1}</span>
+                  <svg 
+                    className="hidden group-hover:block w-5 h-5" 
+                    viewBox="0 0 24 24" 
+                    fill="white"
+                  >
+                    <path d="M8 5.14v14l11-7-11-7z" />
+                  </svg>
+                </div>
+                
+                <img className="w-10 mr-5" src={item.thumbnail} alt="" />
+                
+                <div className="flex-grow">
+                  <span 
+                    onClick={() => playWithSong(item)}
+                    className="block text-white text-[15px] hover:underline font-semibold"
+                  >
+                    {item.title}
+                  </span>
+                  <span 
+                    onClick={() => playWithSong(item)}
+                    className="block text-white text-[14px] font-semibold hover:opacity-100 opacity-60 hover:underline"
+                  >
+                    {item.list_name || "Unknown Artist"}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="col-span-1 flex items-center justify-center" onClick={() => playWithSong(item)}>
+                {/* <p className="text-[15px] font-semibold">{albumData.title}</p> */}
+              </div>
+              <div className="col-span-1 flex items-center justify-center" onClick={() => playWithSong(item)}>
+                <p className="text-[15px] font-semibold">
+                  {item.duration || "3:45"}
+                </p>
+              </div>
+              {/* Add to playlist button column */}
+              <div className="col-span-1 flex items-center justify-center">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddSongToPlayList(item);
                   }}
                   className="hidden group-hover:block text-white opacity-70 hover:opacity-100"
                   title="Add to playlist"

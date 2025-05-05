@@ -23,3 +23,17 @@ export const fetchAllPlaylist = async () => {
     return [];
   }
 };
+
+
+
+
+export const getAllSongs = async () => {
+  try {
+    const response = await axiosInstance.get("music/songs/");
+    return response;
+  } catch (error) {
+
+    console.error("Error fetching all songs:", error);
+    return [];
+  }
+};
