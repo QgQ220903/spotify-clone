@@ -15,32 +15,22 @@ function App() {
     });
   };
   return (
-    <>
     <div className='w-screen h-screen bg-black'>
       <div className='h-[9%] w-[100%]'>
         <Navbar />
       </div>
-      <div className='h-[91%] flex items-center gap-2'>
+      <div className='h-[77%] flex items-center gap-2'>
         <Sidebar />
-        <div className='h-[100%] w-[100%] flex items-center' >
+        <div className='h-[100%] w-[70%] flex items-center' >
           <Display />
           {showVideo && <Displayvideo toggleVideo={toggleVideo} />}
         </div>
       </div>
-      {track && (
-        <div 
-          className='
-            fixed left-0 bottom-0 
-            h-[100px] w-full 
-            bg-gray-900 border-t border-gray-700
-            z-40'
-        >
-          <Player toggleVideo={toggleVideo} />
-          <audio ref={audioRef} src={track?.file || ''} preload='auto' />
-        </div>
-      )}
+      <div className='mt-4'>
+        <Player toggleVideo={toggleVideo} />
+        <audio ref={audioRef} src={track?.file || ''} preload='auto'></audio>
+      </div>
     </div>
-    </>
   )
 }
 
