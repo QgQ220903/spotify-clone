@@ -1,5 +1,4 @@
 // src/services/albumService.js
-import axios from "axios";
 import axiosInstance from "../api/axiosInstance";
 
 // src/service/albumService.js
