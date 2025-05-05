@@ -1,6 +1,6 @@
 import React, { useContext,useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchAllPlaylistById, getAllSongs } from "../service/PlaylistService";
+import {  fetchAllPlaylistById, getAllSongs, putPlaylistAPI } from "../service/PlaylistService";
 import { PlayerContext } from "../context/PlayerContextProvider";
 
 const DisplayPlaylist = () => {
@@ -8,6 +8,7 @@ const DisplayPlaylist = () => {
   const { id } = useParams();
   const [playlist, setPlaylist] = useState();
   const [songs, setSongs] = useState();
+  const [songsID, setSongsID] = useState();
   const [allSongs, setAllSongs] = useState();
 
   useEffect(() => {
@@ -16,6 +17,14 @@ const DisplayPlaylist = () => {
       if (res.status === 200 && res.data) {
         setPlaylist(res.data);
         setSongs(res.data.songs);
+        if(res.data.songs.length>0)
+        {
+          var x = res.data.songs.map((item)=>
+            {
+              return item.id;
+            })
+          setSongsID(x);
+        }
       }
     });
 
@@ -27,9 +36,35 @@ const DisplayPlaylist = () => {
 
 
 
-  var  handleAddSongToPlayList =(id)=>
+  var  handleAddSongToPlayList =(item)=>
   {
-   console.log(id);
+    var check  =  songsID.includes(item.id);
+      setSongsID(prev => [...prev,item.id]);
+      var obj = {
+        "song_ids": songsID,
+        "name":playlist.name
+      }
+      putPlaylistAPI(id,obj);
+
+      //
+      fetchAllPlaylistById(id).then((res) => {
+        if (res.status === 200 && res.data) {
+          setPlaylist(res.data);
+          setSongs(res.data.songs);
+          if(res.data.songs.length>0)
+          {
+            var x = res.data.songs.map((item)=>
+              {
+                return item.id;
+              })
+            setSongsID(x);
+          }
+        }
+      });
+    
+ 
+
+
 
   }
   return (
@@ -162,7 +197,7 @@ const DisplayPlaylist = () => {
           ))}
 <h2>các bài hát khác:</h2>
 
-{allSongs && allSongs.length > 0 && songs.map((item, index) => (
+{allSongs && allSongs.length > 0 && allSongs.map((item, index) => (
             
             <div
               key={index}
