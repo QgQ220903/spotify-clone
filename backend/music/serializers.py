@@ -53,23 +53,25 @@ class SongSerializer(serializers.ModelSerializer):
         return None
 
 class PlaylistSerializer(serializers.ModelSerializer):
-    songs = SongSerializer(many=True, read_only=True)  # Hiển thị đầy đủ thông tin songs khi đọc
+    # Khi đọc -> Trả đầy đủ thông tin bài hát
+    songs = SongSerializer(many=True, read_only=True)
+
+    # Khi ghi -> Chấp nhận mảng ID bài hát
     song_ids = serializers.PrimaryKeyRelatedField(
         queryset=Song.objects.all(),
         many=True,
         required=False,
         write_only=True,
-        source='songs'  # Sử dụng để ghi khi tạo/cập nhật playlist
+        source='songs'
     )
 
     class Meta:
         model = Playlist
         fields = '__all__'
         extra_kwargs = {
-            'user': {'read_only': True}  # Thường user sẽ được tự động gán
+            'user': {'read_only': True}
         }
 
-    # Nếu bạn cần xử lý đặc biệt khi tạo/cập nhật playlist
     def create(self, validated_data):
         songs_data = validated_data.pop('songs', [])
         playlist = Playlist.objects.create(**validated_data)

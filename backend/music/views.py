@@ -11,6 +11,7 @@ from .serializers import (
 from django.contrib.auth import get_user_model
 from django.http import FileResponse, HttpResponse
 from django.views.decorators.http import require_GET
+from rest_framework.decorators import action
 User = get_user_model()
 @require_GET
 def serve_video(request, video_path):
@@ -108,9 +109,22 @@ class SongViewSet(viewsets.ModelViewSet):
 
 class PlaylistViewSet(viewsets.ModelViewSet):
     serializer_class = PlaylistSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Playlist.objects.all() # Thay đổi để trả về tất cả playlist
+        user = self.request.user
+        return Playlist.objects.filter(user_id=user.id)
+
+    @action(detail=False, methods=['get'], url_path='user/(?P<user_id>[^/.]+)')
+    def by_user(self, request, user_id=None):
+        user = request.user
+
+        if not user.is_authenticated:
+            return Response({'detail': 'Authentication required.'}, status=401)
+
+        playlists = Playlist.objects.filter(user__id=user_id)
+        serializer = self.get_serializer(playlists, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
