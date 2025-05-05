@@ -69,13 +69,19 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Frontend
     "http://localhost:5174",  # Admin frontend
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 # settings.py
 CORS_ALLOW_HEADERS = [
-    'authorization',
+    'content-disposition',
+    'accept-encoding',
     'content-type',
+    'accept',
+    'origin',
+    'authorization'
 ]
 
 ROOT_URLCONF = 'spotify_clone.urls'

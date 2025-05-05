@@ -2,13 +2,14 @@ from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated # Comment hoặc xóa dòng này
 from django.shortcuts import get_object_or_404
+
 from .models import Artist, Album, Song, Playlist, Favorite
 from .serializers import (
     ArtistSerializer, AlbumSerializer, SongSerializer,
     PlaylistSerializer, FavoriteSerializer
 )
 from django.contrib.auth import get_user_model
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from django.views.decorators.http import require_GET
 User = get_user_model()
 @require_GET
@@ -67,7 +68,8 @@ class AlbumViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
-def destroy(self, request, *args, **kwargs):
+    
+    def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
