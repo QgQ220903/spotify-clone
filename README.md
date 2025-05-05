@@ -49,7 +49,7 @@
    python manage.py createsuperuser
    ```
 
-#### **4.2.3 Cài đặt Frontend**
+#### **3 Cài đặt Frontend**
 
 1. Mở terminal mới và vào thư mục `frontend`:
 
@@ -62,7 +62,7 @@
    npm install
    ```
 
-#### **4.2.4 Cài đặt Admin Frontend**
+#### **4 Cài đặt Admin Frontend**
 
 1. Mở terminal mới và vào thư mục `admin-frontend`:
 
