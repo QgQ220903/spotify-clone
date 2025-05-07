@@ -4,9 +4,7 @@ import faiss
 from sentence_transformers import SentenceTransformer
 from django.conf import settings
 from .models import DocumentChunk
-from songs.models import Song
-from artists.models import Artist
-from albums.models import Album
+from music.models import Song, Artist, Album
 
 class RAGService:
     def __init__(self):
