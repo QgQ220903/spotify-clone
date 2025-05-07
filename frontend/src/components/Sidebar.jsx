@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { assets } from "../assets/assets";
-import { createPlaylistAPI, fetchAllPlaylist } from "../service/PlaylistService";
+// import { createPlaylistAPI, fetchAllPlaylist } from "../service/PlaylistService";
 
 const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -10,26 +10,26 @@ const Sidebar = () => {
         setIsCollapsed(!isCollapsed);
     };
 
-    useEffect(() => {
-        fetchAllPlaylist().then((res) => {
-            if (res.status === 200 && res.data && res.data.results) {
-                setPlaylists(res.data.results);
-            }
-        });
-    }, []);
+    // useEffect(() => {
+    //     fetchAllPlaylist().then((res) => {
+    //         if (res.status === 200 && res.data && res.data.results) {
+    //             setPlaylists(res.data.results);
+    //         }
+    //     });
+    // }, []);
 
-    const handleCreatePlaylist = () => {
-        const newPlaylist = {
-            songs: [],
-            name: "a",
-            is_public: true,
-            user: localStorage.getItem("userId"),
-        };
+    // const handleCreatePlaylist = () => {
+    //     const newPlaylist = {
+    //         songs: [],
+    //         name: "a",
+    //         is_public: true,
+    //         user: localStorage.getItem("userId"),
+    //     };
 
-        createPlaylistAPI(newPlaylist).then((res) => {
-            console.log("res playlist:", res);
-        });
-    };
+    //     createPlaylistAPI(newPlaylist).then((res) => {
+    //         console.log("res playlist:", res);
+    //     });
+    // };
 
     if (isCollapsed) {
         return (
@@ -55,7 +55,7 @@ const Sidebar = () => {
     return (
         <div className="bg-[#121212] w-[400px] h-full flex-col text-white hidden lg:flex rounded-lg">
             {/* Header */}
-            <div className="p-4 flex items-center justify-between sticky top-0 bg-[#121212] z-10 border-b border-[#282828]">
+            {/* <div className="p-4 flex items-center justify-between sticky top-0 bg-[#121212] z-10 border-b border-[#282828]">
                 <p className="font-bold text-xl">Thư viện</p>
                 <div className="flex items-center gap-3">
                     <button onClick={handleCreatePlaylist} className="p-1 rounded-full hover:bg-[#282828]">
@@ -65,7 +65,7 @@ const Sidebar = () => {
                         <img src={assets.rightarrow} className="w-5 h-5 opacity-70 hover:opacity-100 rotate-180" alt="Collapse" />
                     </button>
                 </div>
-            </div>
+            </div> */}
 
             {/* Filter Tabs */}
             <div className="px-4 pt-3 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
