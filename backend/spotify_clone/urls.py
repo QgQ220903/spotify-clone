@@ -25,4 +25,5 @@ urlpatterns = [
     path('api/auth/', include('accounts.urls')),
     path('api/music/', include('music.urls')),
     path('api/download/video/<path:video_path>', serve_video, name='serve_video'),
+    path('api/ai/', include('ai_assistant.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
