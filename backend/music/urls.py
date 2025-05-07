@@ -14,7 +14,7 @@ router = DefaultRouter()
 router.register(r'artists', ArtistViewSet, basename='artist')
 router.register(r'albums', AlbumViewSet, basename='album')
 router.register(r'songs', SongViewSet, basename='song')
-router.register(r'playlists', PlaylistViewSet, obtain_auth_token)
+router.register(r'playlists', PlaylistViewSet, basename='playlist')
 
 urlpatterns = [
     path('', include(router.urls)),

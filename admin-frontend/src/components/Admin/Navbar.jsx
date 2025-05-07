@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
@@ -20,12 +20,34 @@ import {
 const Navbar = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [user, setUser] = useState(null);
   const open = Boolean(anchorEl);
+
+  useEffect(() => {
+    // Lấy thông tin user từ localStorage hoặc context
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      try {
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        setUser({
+          username: decodedToken.username,
+          email: decodedToken.email || 'admin@example.com'
+        });
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+    }
+  }, []);
+
+  const getInitials = (username) => {
+    return username ? username.charAt(0).toUpperCase() : 'A';
+  };
 
   const handleOpenMenu = (event) => setAnchorEl(event.currentTarget);
   const handleCloseMenu = () => setAnchorEl(null);
 
   const handleLogout = () => {
+    localStorage.removeItem('adminToken');
     handleCloseMenu();
     navigate('/login');
   };
@@ -58,7 +80,7 @@ const Navbar = () => {
           }}
         >
           <Avatar sx={{ width: 32, height: 32, bgcolor: '#1DB954', fontWeight: 500 }}>
-            AU
+            {getInitials(user?.username)}
           </Avatar>
           <ArrowDropDownIcon
             sx={{
@@ -88,13 +110,15 @@ const Navbar = () => {
         >
           <MenuItem disabled>
             <Box display="flex" alignItems="center" gap={2}>
-              <Avatar sx={{ width: 40, height: 40, bgcolor: '#1DB954' }}>AU</Avatar>
+              <Avatar sx={{ width: 40, height: 40, bgcolor: '#1DB954' }}>
+                {getInitials(user?.username)}
+              </Avatar>
               <Box>
                 <Typography variant="subtitle1" fontWeight={600}>
-                  Admin User
+                  {user?.username || 'Admin User'}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  admin@example.com
+                  {user?.email || 'admin@example.com'}
                 </Typography>
               </Box>
             </Box>

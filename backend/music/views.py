@@ -113,16 +113,32 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Playlist.objects.filter(user_id=user.id)
+        # Kiểm tra xem request có phải từ admin frontend không
+        is_admin_frontend = self.request.headers.get('X-Admin-Frontend') == 'true'
+        
+        # Nếu là admin và request từ admin frontend
+        if user.user_type == 'admin' and is_admin_frontend:
+            return Playlist.objects.all()
+        # Nếu là user thường hoặc admin truy cập từ frontend thông thường
+        return Playlist.objects.filter(user=user)
 
     @action(detail=False, methods=['get'], url_path='user/(?P<user_id>[^/.]+)')
     def by_user(self, request, user_id=None):
         user = request.user
+        is_admin_frontend = self.request.headers.get('X-Admin-Frontend') == 'true'
 
         if not user.is_authenticated:
             return Response({'detail': 'Authentication required.'}, status=401)
 
-        playlists = Playlist.objects.filter(user__id=user_id)
+        # Chỉ admin từ admin frontend mới có thể xem playlist của người khác
+        if user.user_type == 'admin' and is_admin_frontend:
+            playlists = Playlist.objects.filter(user__id=user_id)
+        else:
+            # User thường chỉ có thể xem playlist của chính mình
+            if str(user.id) != user_id:
+                return Response({'detail': 'Permission denied.'}, status=403)
+            playlists = Playlist.objects.filter(user__id=user_id)
+
         serializer = self.get_serializer(playlists, many=True)
         return Response(serializer.data)
 

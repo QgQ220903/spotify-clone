@@ -53,10 +53,8 @@ class SongSerializer(serializers.ModelSerializer):
         return None
 
 class PlaylistSerializer(serializers.ModelSerializer):
-    # Khi đọc -> Trả đầy đủ thông tin bài hát
     songs = SongSerializer(many=True, read_only=True)
 
-    # Khi ghi -> Chấp nhận mảng ID bài hát
     song_ids = serializers.PrimaryKeyRelatedField(
         queryset=Song.objects.all(),
         many=True,

@@ -13,7 +13,6 @@ class CustomUser(AbstractUser):
     user_type = models.CharField(
         max_length=10, 
         choices=USER_TYPE_CHOICES, 
-        default='listener',
         verbose_name=_('User Type')
     )
     bio = models.TextField(blank=True)

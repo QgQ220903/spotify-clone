@@ -88,6 +88,7 @@ def generate_admin_token(request):
     payload = {
         'user_id': request.user.id,
         'username': request.user.username,
+        'email': request.user.email,  # Thay 'email' bằng trường email của bạn trong User mode
         'is_admin': True,
         'exp': datetime.utcnow() + timedelta(minutes=5),
         'admin_access': True

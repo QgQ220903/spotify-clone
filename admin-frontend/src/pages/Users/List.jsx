@@ -32,7 +32,7 @@ import { Add, Edit, Delete, Search, Person } from '@mui/icons-material';
 import UserService from '../../services/UserService';
 
 const spotifyGreen = '#1DB954';
-const spotifyBlack = '#191414';
+// const spotifyBlack = '#191414';
 const spotifyWhite = '#FFFFFF';
 const spotifyGray = '#b3b3b3';
 

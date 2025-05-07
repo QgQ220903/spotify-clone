@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { assets } from "../assets/assets";
-import { createPlaylistAPI, fetchAllPlaylist } from "../service/PlaylistService";
+import { createPlaylist, getUserPlaylists } from "../service/PlaylistService";
 
 const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -11,9 +11,9 @@ const Sidebar = () => {
     };
 
     useEffect(() => {
-        fetchAllPlaylist().then((res) => {
-            if (res.status === 200 && res.data && res.data.results) {
-                setPlaylists(res.data.results);
+        getUserPlaylists().then((res) => {
+            if (res && Array.isArray(res)) {
+                setPlaylists(res);
             }
         });
     }, []);
@@ -21,13 +21,19 @@ const Sidebar = () => {
     const handleCreatePlaylist = () => {
         const newPlaylist = {
             songs: [],
-            name: "a",
+            name: "New Playlist",
             is_public: true,
             user: localStorage.getItem("userId"),
         };
 
-        createPlaylistAPI(newPlaylist).then((res) => {
+        createPlaylist(newPlaylist).then((res) => {
             console.log("res playlist:", res);
+            // Refresh playlist list after creating new one
+            getUserPlaylists().then((res) => {
+                if (res && Array.isArray(res)) {
+                    setPlaylists(res);
+                }
+            });
         });
     };
 

@@ -90,7 +90,6 @@ const Navbar = () => {
       <div className="flex items-center gap-2 md:gap-4">
         {user ? (
           <>
-            {/* Admin Button - Only show if user is admin */}
             {user?.isAdmin && (
               <button
                 onClick={goToAdminPanel}
