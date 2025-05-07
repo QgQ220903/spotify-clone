@@ -64,7 +64,14 @@ const AIChat = () => {
         {messages.length === 0 ? (
           <div className="ai-chat-welcome">
             <h3>Chào mừng đến với Trợ lý AI</h3>
-            <p>Hãy hỏi tôi bất cứ điều gì về âm nhạc, nghệ sĩ, hoặc cách sử dụng ứng dụng!</p>
+            <p>Hãy hỏi tôi bất cứ điều gì về âm nhạc, nghệ sĩ, album hoặc bài hát trong ứng dụng!</p>
+            <p>Tôi có thể giúp bạn tìm kiếm thông tin về:</p>
+            <ul>
+              <li>Bài hát và album của nghệ sĩ yêu thích</li>
+              <li>Thông tin chi tiết về nghệ sĩ</li>
+              <li>Gợi ý bài hát tương tự</li>
+              <li>Cách sử dụng ứng dụng</li>
+            </ul>
           </div>
         ) : (
           messages.map((msg, index) => (
