@@ -9,6 +9,7 @@ import { AuthProvider } from './context/AuthContext.jsx' // 👈 import
 
 import Login from './components/Login.jsx'
 import Register from './components/Register.jsx'
+import Chat from './pages/Chat.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')).render(
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/*" element={<App />} />
+              <Route path="/chat" element={<Chat />} />
             </Routes>
           </AuthProvider>
         </LoginProvider>

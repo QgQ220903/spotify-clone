@@ -99,6 +99,13 @@ const Navbar = () => {
               </button>
             )}
 
+            <button
+              onClick={() => navigate('/chat')}
+              className="bg-[#1DB954] text-black px-3 py-1 rounded-full hover:bg-[#1ed760] transition duration-200 text-sm"
+            >
+              Chat
+            </button>
+
             <img
               className="w-5 h-5 opacity-70 hover:opacity-90 cursor-pointer"
               src={assets.bell}
