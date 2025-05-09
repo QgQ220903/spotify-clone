@@ -82,8 +82,7 @@ export const fetchAllPlaylistById = async (id) => {
     });
     return response;
   } catch (error) {
-
-    console.error("Error fetching all songs:", error);
+  console.error("Error fetching all songs:", error);
     return [];
   }
 };
