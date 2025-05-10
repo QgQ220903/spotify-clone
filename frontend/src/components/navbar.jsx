@@ -100,6 +100,13 @@ const Navbar = () => {
             )}
 
             <button
+              onClick={() => navigate('/friends')}
+              className="bg-[#1DB954] text-black px-3 py-1 rounded-full hover:bg-[#1ed760] transition duration-200 text-sm"
+            >
+              Bạn bè
+            </button>
+
+            <button
               onClick={() => navigate('/chat')}
               className="bg-[#1DB954] text-black px-3 py-1 rounded-full hover:bg-[#1ed760] transition duration-200 text-sm"
             >

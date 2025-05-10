@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatService } from '../../service/ChatService';
 import { useNavigate } from 'react-router-dom';
-
+import { FriendService } from '../../service/FriendService';
 const ChatWindow = ({ selectedUserId }) => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
@@ -18,14 +18,34 @@ const ChatWindow = ({ selectedUserId }) => {
     }
   }, [selectedUserId]);
 
+  const handleSend = async () => {
+    if (!newMessage.trim()) return;
+
+    try {
+      await ChatService.sendMessage(selectedUserId, newMessage);
+      setNewMessage('');
+      loadMessages();
+    } catch (error) {
+      console.error('Lỗi khi gửi tin nhắn:', error);
+    }
+  };
+
   const loadUserInfo = async () => {
     try {
+      // Trước tiên thử lấy thông tin từ tin nhắn
       const response = await ChatService.getMessages(selectedUserId);
       if (response.results && response.results.length > 0) {
         const otherUser = response.results[0].sender === currentUserId
           ? response.results[0].receiver_detail
           : response.results[0].sender_detail;
         setSelectedUser(otherUser);
+      } else {
+        // Nếu chưa có tin nhắn, lấy thông tin từ danh sách bạn bè
+        const friendsResponse = await FriendService.getFriends();
+        const friend = friendsResponse.results.find(f => f.friend_info.id === selectedUserId);
+        if (friend) {
+          setSelectedUser(friend.friend_info);
+        }
       }
     } catch (error) {
       console.error('Lỗi khi tải thông tin người dùng:', error);
@@ -51,18 +71,6 @@ const ChatWindow = ({ selectedUserId }) => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleSend = async () => {
-    if (!newMessage.trim()) return;
-
-    try {
-      await ChatService.sendMessage(selectedUserId, newMessage);
-      setNewMessage('');
-      loadMessages();
-    } catch (error) {
-      console.error('Lỗi khi gửi tin nhắn:', error);
-    }
   };
 
   return (

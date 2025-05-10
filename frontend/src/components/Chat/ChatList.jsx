@@ -1,6 +1,7 @@
 // ChatList.js
 import React, { useEffect, useState } from 'react';
 import { ChatService } from '../../service/ChatService';
+import { FriendService } from '../../service/FriendService';
 
 const ChatList = ({ onSelectChat }) => {
   const [conversations, setConversations] = useState([]);
@@ -10,14 +11,45 @@ const ChatList = ({ onSelectChat }) => {
   }, []);
 
   const loadConversations = async () => {
-    const data = await ChatService.getConversations();
-    console.log('Conversations data:', data); // Kiểm tra dữ liệu
-    setConversations(data);
+    try {
+      // Lấy danh sách bạn bè
+      const friendsResponse = await FriendService.getFriends();
+      const friends = friendsResponse.results;
+
+      // Lấy danh sách cuộc trò chuyện
+      const conversationsResponse = await ChatService.getConversations();
+
+      // Tạo map lưu trữ tin nhắn cuối cùng theo user_id
+      const lastMessagesMap = {};
+      conversationsResponse.forEach(conv => {
+        lastMessagesMap[conv.user] = {
+          last_message: conv.last_message,
+          unread: conv.unread,
+          timestamp: conv.timestamp
+        };
+      });
+
+      // Tạo danh sách conversations từ danh sách bạn bè và tin nhắn
+      const conversations = friends.map(friend => ({
+        user: friend.friend_info.id,
+        username: friend.friend_info.username,
+        avatar: friend.friend_info.avatar,
+        last_message: lastMessagesMap[friend.friend_info.id]?.last_message || 'Chưa có tin nhắn',
+        unread: lastMessagesMap[friend.friend_info.id]?.unread || 0,
+        timestamp: lastMessagesMap[friend.friend_info.id]?.timestamp || null
+      }));
+
+      setConversations(conversations);
+    } catch (error) {
+      console.error('Lỗi khi tải danh sách bạn bè:', error);
+      setConversations([]);
+    }
   };
 
   const handleSelectChat = (userId) => {
-    console.log('Selected user ID:', userId); // Kiểm tra sự kiện click
     onSelectChat(userId);
+    // Cập nhật lại danh sách sau khi chọn chat
+    loadConversations();
   };
 
   return (

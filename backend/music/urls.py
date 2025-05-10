@@ -18,5 +18,4 @@ router.register(r'playlists', PlaylistViewSet, basename='playlist')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('favorites/', FavoriteView.as_view(), name='favorites')
 ]
