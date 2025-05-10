@@ -6,6 +6,10 @@ from .models import AIConversation, AIMessage, DocumentChunk
 from .serializers import AIConversationSerializer, AIMessageSerializer, AIRequestSerializer
 from .services import OllamaService
 from .rag_service import RAGService
+import logging
+
+# Thiết lập logging
+logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -25,20 +29,24 @@ def ai_chat(request):
         try:
             conversation = AIConversation.objects.get(id=conversation_id, user=request.user)
         except AIConversation.DoesNotExist:
-            return Response({"error": "Không tìm thấy cuộc trò chuyện"}, status=status.HTTP_404_NOT_FOUND)
+            # Tạo cuộc hội thoại mới nếu không tìm thấy
+            conversation = AIConversation.objects.create(user=request.user)
+            logger.info(f"Tạo cuộc hội thoại mới với ID {conversation.id} vì không tìm thấy ID {conversation_id}")
     else:
+        # Tạo cuộc hội thoại mới nếu không có conversation_id
         conversation = AIConversation.objects.create(user=request.user)
+        logger.info(f"Tạo cuộc hội thoại mới với ID {conversation.id}")
     
     # Lưu tin nhắn của người dùng
-    AIMessage.objects.create(
+    user_ai_message = AIMessage.objects.create(
         conversation=conversation,
         role='user',
         content=user_message
     )
     
-    # Gọi Ollama API
+    # Gọi Ollama API với conversation_id để đảm bảo lịch sử hội thoại được sử dụng
     ollama_service = OllamaService()
-    ai_response = ollama_service.generate_response(user_message)
+    ai_response = ollama_service.generate_response(user_message, conversation.id)
     
     # Lưu phản hồi của AI
     ai_message = AIMessage.objects.create(
@@ -47,9 +55,17 @@ def ai_chat(request):
         content=ai_response
     )
     
+    # Log để debug
+    logger.info(f"Trả về phản hồi: conversation_id={conversation.id}, message_id={ai_message.id}")
+    
     return Response({
-        "conversation_id": conversation.id,
-        "message": AIMessageSerializer(ai_message).data
+        'conversation_id': conversation.id,
+        'message': {
+            'id': ai_message.id,
+            'role': ai_message.role,
+            'content': ai_message.content,
+            'timestamp': ai_message.timestamp
+        }
     })
 
 class AIConversationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -79,3 +95,63 @@ def update_rag_index(request):
         return Response({"message": "RAG index đã được cập nhật thành công"})
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def chat(request):
+    user_message = request.data.get('message', '')
+    conversation_id = request.data.get('conversation_id')
+    
+    # Log để debug
+    logger.info(f"Nhận yêu cầu chat: message={user_message[:30]}..., conversation_id={conversation_id}")
+    
+    # Xử lý conversation
+    if conversation_id:
+        try:
+            conversation = AIConversation.objects.get(id=conversation_id, user=request.user)
+        except AIConversation.DoesNotExist:
+            # Nếu conversation_id không tồn tại hoặc không thuộc về user này
+            conversation = AIConversation.objects.create(user=request.user)
+            conversation_id = conversation.id
+            logger.info(f"Tạo cuộc hội thoại mới với ID {conversation_id}")
+    else:
+        conversation = AIConversation.objects.create(user=request.user)
+        conversation_id = conversation.id
+        logger.info(f"Tạo cuộc hội thoại mới với ID {conversation_id}")
+    
+    # Lưu tin nhắn người dùng
+    user_ai_message = AIMessage.objects.create(
+        conversation=conversation,
+        role='user',
+        content=user_message
+    )
+    
+    # Gọi service để tạo phản hồi
+    ollama_service = OllamaService()
+    ai_response = ollama_service.generate_response(user_message, conversation_id)
+    
+    # Kiểm tra phản hồi trống
+    if not ai_response or ai_response.strip() == '':
+        ai_response = "Xin lỗi, tôi không thể trả lời câu hỏi này. Vui lòng thử câu hỏi khác."
+        logger.warning(f"Phát hiện phản hồi trống, thay thế bằng thông báo mặc định")
+    
+    # Lưu phản hồi của AI
+    ai_message = AIMessage.objects.create(
+        conversation=conversation,
+        role='assistant',
+        content=ai_response
+    )
+    
+    # Log để debug
+    logger.info(f"Trả về phản hồi: conversation_id={conversation_id}, message_id={ai_message.id}, content_length={len(ai_response)}")
+    
+    return Response({
+        'conversation_id': conversation_id,
+        'message': {
+            'id': ai_message.id,
+            'role': ai_message.role,
+            'content': ai_response,
+            'timestamp': ai_message.timestamp
+        }
+    })

@@ -3,12 +3,13 @@ import { assets } from '../assets/assets'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import axios from '../api/axiosInstance'
-
+import AIChat from './AIChat/AIChat' // Import component chat đã chỉnh sửa
 
 const Navbar = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const firstChar = user?.username?.[0]?.toUpperCase() || 'U'
+  const [showChat, setShowChat] = useState(false)
 
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF'
@@ -30,15 +31,11 @@ const Navbar = () => {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const ADMIN_FRONTEND_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
 
-      // 1. Kiểm tra token có tồn tại không
       const token = localStorage.getItem('accessToken');
       if (!token) {
         throw new Error('No access token found');
       }
 
-      console.log('Sending token:', token); // Debug log
-
-      // 2. Gọi API với headers đúng chuẩn
       const response = await axios.get(
         `${API_BASE_URL}/api/auth/admin/generate-token/`,
         {
@@ -68,8 +65,9 @@ const Navbar = () => {
       }
     }
   };
+
   return (
-    <div className="w-full h-16 bg-[#0C0C0C] flex items-center justify-between px-4 md:px-6 lg:px-8">
+    <div className="w-full h-16 bg-[#0C0C0C] flex items-center justify-between px-4 md:px-6 lg:px-8 relative">
       {/* Left */}
       <div className="flex items-center gap-2 md:gap-4">
         <img src={assets.spotify} alt="Spotify" className="w-8 h-8 md:w-11 md:h-11" />
@@ -90,6 +88,38 @@ const Navbar = () => {
       <div className="flex items-center gap-2 md:gap-4">
         {user ? (
           <>
+            {/* Chatbot Icon */}
+            <div className="relative">
+              <button
+                onClick={() => setShowChat(!showChat)}
+                className="p-2 rounded-full hover:bg-[#282828] transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              </button>
+              
+              {/* Chatbot Dropdown */}
+              {showChat && (
+                <div className="absolute right-0 top-12 w-80 h-[500px] bg-[#181818] rounded-lg shadow-xl z-50 flex flex-col border border-gray-700">
+                  <div className="flex justify-between items-center p-3 border-b border-gray-700">
+                    <h3 className="font-semibold text-white">Trợ lý AI</h3>
+                    <button 
+                      onClick={() => setShowChat(false)}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-3">
+                    <AIChat compactMode={true} />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Admin Button - Only show if user is admin */}
             {user?.isAdmin && (
               <button

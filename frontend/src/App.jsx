@@ -6,17 +6,13 @@ import Player from './components/Player'
 import Display from './components/Display'
 import { PlayerContext } from './context/PlayerContextProvider'
 import Displayvideo from './components/DisplayVideo'
-import AIChatPage from './pages/AIChatPage'
 
 function MainLayout({ children }) {
   const { audioRef, track } = useContext(PlayerContext)
   const [showVideo, setShowVideo] = useState(false)
   
   const toggleVideo = () => {
-    setShowVideo(prev => {
-      console.log("Trạng thái trước:", prev)
-      return !prev
-    })
+    setShowVideo(prev => !prev)
   }
 
   return (
@@ -35,7 +31,7 @@ function MainLayout({ children }) {
         <div 
           className='
             fixed left-0 bottom-0 
-            h-[100px] w-full 
+            h-[80px] w-full 
             bg-gray-900 border-t border-gray-700
             z-40'
         >
@@ -59,15 +55,6 @@ function App() {
             </MainLayout>
           } 
         />
-        <Route 
-          path="/ai-chat" 
-          element={
-            <MainLayout>
-              <AIChatPage />
-            </MainLayout>
-          } 
-        />
-        {/* Add more routes as needed */}
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
     </>
