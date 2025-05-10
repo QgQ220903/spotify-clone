@@ -11,6 +11,7 @@ import Login from './components/Login.jsx'
 import Register from './components/Register.jsx'
 import Chat from './pages/Chat.jsx'
 import Friends from './pages/Friends.jsx'
+import Social from './pages/Social.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')).render(
               <Route path="/friends" element={<Friends />} />
               <Route path="/*" element={<App />} />
               <Route path="/chat" element={<Chat />} />
+              <Route path="/social" element={<Social />} />
             </Routes>
           </AuthProvider>
         </LoginProvider>

@@ -48,8 +48,6 @@ const ChatList = ({ onSelectChat }) => {
 
   const handleSelectChat = (userId) => {
     onSelectChat(userId);
-    // Cập nhật lại danh sách sau khi chọn chat
-    loadConversations();
   };
 
   return (
