@@ -76,7 +76,6 @@ const DisplayPlaylist = () => {
       {playlist && (
         <div className="min-h-screen w-full bg-gradient-to-b from-[#333] via-[#111] to-black text-white">
           {/* Playlist Header */}
-          <h1>{id}</h1>
           <div className="flex items-end gap-6 p-6">
             {/* Playlist Cover */}
             <div className="w-52 h-52 bg-neutral-700 flex items-center justify-center rounded shadow-lg">
