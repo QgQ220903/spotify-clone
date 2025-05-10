@@ -1,111 +1,88 @@
+// src/services/albumService.js
+import axios from "axios";
 import axiosInstance from "../api/axiosInstance";
 
-// Tạo playlist mới
-export const createPlaylist = async (playlistData) => {
-  try {
-    const response = await axiosInstance.post("/music/playlists/", {
-      ...playlistData,
-      user: localStorage.getItem("userId"),
-      is_public: true,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi tạo playlist:", error);
-    throw error;
-  }
-};
+// src/service/albumService.js
+export const createPlaylistAPI = async (obj) => {
+  try { const accessToken = localStorage.getItem('accessToken');
 
-// Lấy tất cả playlist của người dùng hiện tại
-export const getUserPlaylists = async () => {
-  try {
-    // Lấy token từ localStorage
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      throw new Error("Không tìm thấy token xác thực");
-    }
-
-    // Lấy userId từ localStorage
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      throw new Error("Không tìm thấy userId");
-    }
-
-    // Thêm token vào header
-    const response = await axiosInstance.get(`/music/playlists/`, {
+    const response = await axiosInstance.post("/music/playlists/",obj, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+        Authorization: `Bearer ${accessToken}`
+      }
     });
 
-    return response.data;
+    return response;
   } catch (error) {
-    if (error.response?.status === 401) {
-      console.error("Token hết hạn hoặc không hợp lệ");
-      // Có thể thêm logic refresh token ở đây
-      localStorage.removeItem("accessToken"); // Xóa token không hợp lệ
-    }
-    console.error("Lỗi khi lấy danh sách playlist:", error);
-    return []; // Trả về mảng rỗng khi có lỗi
+    console.error("Error fetching all albums:", error);
+    return [];
   }
 };
 
-// Cập nhật playlist
-export const updatePlaylist = async (playlistId, updateData) => {
+export const putPlaylistAPI = async (id, obj) => {
   try {
-    const response = await axiosInstance.patch(
-      `/music/playlists/${playlistId}/`,
-      updateData
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi cập nhật playlist:", error);
-    throw error;
-  }
-};
+    const accessToken = localStorage.getItem('accessToken');
 
-// Xóa playlist
-export const deletePlaylist = async (playlistId) => {
-  try {
-    await axiosInstance.delete(`/music/playlists/${playlistId}/`);
-    return true;
-  } catch (error) {
-    console.error("Lỗi khi xóa playlist:", error);
-    throw error;
-  }
-};
-
-// Thêm bài hát vào playlist
-export const addSongToPlaylist = async (playlistId, songId) => {
-  try {
-    const playlist = await axiosInstance.get(`/music/playlists/${playlistId}/`);
-    const updatedSongs = [...playlist.data.songs, songId];
-    const response = await axiosInstance.patch(
-      `/music/playlists/${playlistId}/`,
-      {
-        songs: updatedSongs,
+    const response = await axios.put(`http://127.0.0.1:8000/api/music/playlists/${id}/`, obj, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
       }
-    );
-    return response.data;
+    });
+
+    return response;
   } catch (error) {
-    console.error("Lỗi khi thêm bài hát vào playlist:", error);
-    throw error;
+    console.error("Error updating playlist:", error);
+    return null;
+  }
+};
+// src/service/songService.js
+export const fetchAllPlaylist = async () => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+
+    const response = await axiosInstance.get("/music/playlists/?user_id="+localStorage.getItem('userId'), {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    // Kiểm tra cả response.data.results và response.data
+    return response;
+  } catch (error) {
+    console.error("Error fetching all songs:", error);
+    return [];
   }
 };
 
-// Xóa bài hát khỏi playlist
-export const removeSongFromPlaylist = async (playlistId, songId) => {
+
+
+
+export const getAllSongs = async () => {
   try {
-    const playlist = await axiosInstance.get(`/music/playlists/${playlistId}/`);
-    const updatedSongs = playlist.data.songs.filter((id) => id !== songId);
-    const response = await axiosInstance.patch(
-      `/music/playlists/${playlistId}/`,
-      {
-        songs: updatedSongs,
+    const accessToken = localStorage.getItem('accessToken');
+    const response = await axiosInstance.get("music/songs/", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
       }
-    );
-    return response.data;
+    });
+    return response;
   } catch (error) {
-    console.error("Lỗi khi xóa bài hát khỏi playlist:", error);
-    throw error;
+
+    console.error("Error fetching all songs:", error);
+    return [];
+  }
+};
+
+export const fetchAllPlaylistById = async (id) => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const response = await axiosInstance.get("/music/playlists/"+id+'/', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    return response;
+  } catch (error) {
+  console.error("Error fetching all songs:", error);
+    return [];
   }
 };
