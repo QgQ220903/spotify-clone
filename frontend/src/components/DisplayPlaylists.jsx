@@ -2,35 +2,65 @@ import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchAllPlaylistById, getAllSongs, putPlaylistAPI } from "../service/PlaylistService";
 import { PlayerContext } from "../context/PlayerContextProvider";
+import Fuse from "fuse.js"; // Thêm thư viện fuse.js
 
 const DisplayPlaylist = () => {
   const { playWithSong } = useContext(PlayerContext);
   const { id } = useParams();
   const [playlist, setPlaylist] = useState();
   const [songs, setSongs] = useState([]);
-  const [allSongs, setAllSongs] = useState();
+  const [allSongs, setAllSongs] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); // State cho giá trị tìm kiếm
+  const [filteredSongs, setFilteredSongs] = useState([]); // State cho kết quả tìm kiếm
 
   useEffect(() => {
     fetchAllPlaylistById(id).then((res) => {
       console.log("ducnc2", res);
       if (res.status === 200 && res.data) {
         setPlaylist(res.data);
-        setSongs(res.data.songs || []); // Ensure songs is always an array
+        const filteredSongs = res.data.songs.map((item) => {
+          item.list_name = item.artists.map((a) => a.name).join(", ");
+          return item;
+        });
+        setSongs(filteredSongs || []);
       }
     });
 
     getAllSongs().then((res) => {
       console.log("tất cả bài hát:", res);
-      setAllSongs(res.data.results);
+      const filteredSongs = res.data.results.map((item) => {
+        item.list_name = item.artists.map((a) => a.name).join(", ");
+        return item;
+      });
+      setAllSongs(filteredSongs);
+      setFilteredSongs(filteredSongs); // Ban đầu hiển thị tất cả bài hát
     });
   }, [id]);
 
-  // Log songs changes for debugging
+  // Xử lý tìm kiếm gần đúng với fuse.js
+  useEffect(() => {
+    if (!allSongs || allSongs.length === 0) return;
+
+    if (searchQuery.trim() === "") {
+      setFilteredSongs(allSongs); // Nếu không có query, hiển thị tất cả
+      return;
+    }
+
+    const fuse = new Fuse(allSongs, {
+      keys: ["title", "list_name"], // Tìm kiếm theo title và list_name
+      threshold: 0.4, // Độ nhạy của tìm kiếm (0.0: khớp chính xác, 1.0: rất lỏng)
+      ignoreLocation: true, // Bỏ qua vị trí của từ khóa
+      minMatchCharLength: 1, // Tìm kiếm với từ khóa tối thiểu 1 ký tự
+    });
+
+    const result = fuse.search(searchQuery).map(({ item }) => item);
+    setFilteredSongs(result);
+  }, [searchQuery, allSongs]);
+
   useEffect(() => {
     console.log("Songs updated:", songs);
   }, [songs]);
 
-  // Derive songsID from songs
   const songsID = songs ? songs.map((item) => item.id) : [];
 
   const handleDelete = (item) => {
@@ -47,7 +77,11 @@ const DisplayPlaylist = () => {
     putPlaylistAPI(id, obj).then((res) => {
       if (res.status === 200 && res.data) {
         setPlaylist(res.data);
-        setSongs(res.data.songs || []); // Update songs
+        const filteredSongs = res.data.songs.map((item) => {
+          item.list_name = item.artists.map((a) => a.name).join(", ");
+          return item;
+        });
+        setSongs(filteredSongs || []);
       }
     });
   };
@@ -66,7 +100,11 @@ const DisplayPlaylist = () => {
     putPlaylistAPI(id, obj).then((res) => {
       if (res.status === 200 && res.data) {
         setPlaylist(res.data);
-        setSongs(res.data.songs || []); // Update songs
+        const filteredSongs = res.data.songs.map((item) => {
+          item.list_name = item.artists.map((a) => a.name).join(", ");
+          return item;
+        });
+        setSongs(filteredSongs || []);
       }
     });
   };
@@ -77,7 +115,6 @@ const DisplayPlaylist = () => {
         <div className="min-h-screen w-full bg-gradient-to-b from-[#333] via-[#111] to-black text-white">
           {/* Playlist Header */}
           <div className="flex items-end gap-6 p-6">
-            {/* Playlist Cover */}
             <div className="w-52 h-52 bg-neutral-700 flex items-center justify-center rounded shadow-lg">
               <svg
                 className="w-16 h-16 text-neutral-400"
@@ -93,16 +130,10 @@ const DisplayPlaylist = () => {
                 />
               </svg>
             </div>
-
-            {/* Playlist Info */}
             <div className="flex flex-col justify-end">
-              <p className="uppercase text-xs font-semibold text-white/60">
-                {playlist.name}
-              </p>
+              <p className="uppercase text-xs font-semibold text-white/60">{playlist.name}</p>
               <h1 className="text-6xl font-bold mt-2">{playlist.name}</h1>
-              <p className="text-white/70 mt-4 text-sm">
-                {songs.length + " bài hát"}
-              </p>
+              <p className="text-white/70 mt-4 text-sm">{songs.length + " bài hát"}</p>
             </div>
           </div>
 
@@ -115,18 +146,6 @@ const DisplayPlaylist = () => {
               <button className="text-white/80 text-xl hover:text-white">👤</button>
               <button className="text-white/80 text-xl hover:text-white">⋯</button>
             </div>
-          </div>
-
-          {/* Search Input */}
-          <div className="px-6 mt-10">
-            <h2 className="text-lg font-semibold mb-4">
-              Hãy cùng tìm nội dung cho danh sách phát của bạn
-            </h2>
-            <input
-              type="text"
-              placeholder="Tìm bài hát và tập podcast"
-              className="w-full p-4 bg-neutral-800 rounded-md placeholder-white/50 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
           </div>
 
           {/* Danh sách bài hát */}
@@ -143,17 +162,11 @@ const DisplayPlaylist = () => {
                       className="mr-4 w-5 h-5 flex items-center justify-center text-[#a7a7a7]"
                     >
                       <span className="group-hover:hidden">{index + 1}</span>
-                      <svg
-                        className="hidden group-hover:block w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill="white"
-                      >
+                      <svg className="hidden group-hover:block w-5 h-5" viewBox="0 0 24 24" fill="white">
                         <path d="M8 5.14v14l11-7-11-7z" />
                       </svg>
                     </div>
-
                     <img className="w-10 mr-5" src={item.thumbnail} alt="" />
-
                     <div className="flex-grow">
                       <span
                         onClick={() => playWithSong(item)}
@@ -169,7 +182,6 @@ const DisplayPlaylist = () => {
                       </span>
                     </div>
                   </div>
-
                   <div className="col-span-1 flex items-center justify-center" onClick={() => playWithSong(item)}></div>
                   <div className="col-span-1 flex items-center justify-center" onClick={() => playWithSong(item)}>
                     <p className="text-[15px] font-semibold">{item.duration || "3:45"}</p>
@@ -198,13 +210,27 @@ const DisplayPlaylist = () => {
                 </div>
               ))
             ) : (
-              <h1>no data</h1>
+              <h1>Không có bài hát nào</h1>
             )}
 
+            {/* Search Input */}
+            <div className="px-6 mt-10">
+              <h2 className="text-lg font-semibold mb-4">
+                Hãy cùng tìm nội dung cho danh sách phát của bạn
+              </h2>
+              <input
+                type="text"
+                placeholder="Tìm bài hát và tập podcast"
+                className="w-full p-4 bg-neutral-800 rounded-md placeholder-white/50 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)} // Cập nhật query khi nhập
+              />
+            </div>
+
+            {/* Hiển thị các bài hát đã lọc */}
             <h2>các bài hát khác:</h2>
-            {allSongs &&
-              allSongs.length > 0 &&
-              allSongs.map((item, index) => (
+            {filteredSongs && filteredSongs.length > 0 ? (
+              filteredSongs.map((item, index) => (
                 <div
                   key={index}
                   className="group grid grid-cols-[1fr_2fr_1fr_30px] p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"
@@ -215,17 +241,11 @@ const DisplayPlaylist = () => {
                       className="mr-4 w-5 h-5 flex items-center justify-center text-[#a7a7a7]"
                     >
                       <span className="group-hover:hidden">{index + 1}</span>
-                      <svg
-                        className="hidden group-hover:block w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill="white"
-                      >
+                      <svg className="hidden group-hover:block w-5 h-5" viewBox="0 0 24 24" fill="white">
                         <path d="M8 5.14v14l11-7-11-7z" />
                       </svg>
                     </div>
-
                     <img className="w-10 mr-5" src={item.thumbnail} alt="" />
-
                     <div className="flex-grow">
                       <span
                         onClick={() => playWithSong(item)}
@@ -241,7 +261,6 @@ const DisplayPlaylist = () => {
                       </span>
                     </div>
                   </div>
-
                   <div className="col-span-1 flex items-center justify-center" onClick={() => playWithSong(item)}></div>
                   <div className="col-span-1 flex items-center justify-center" onClick={() => playWithSong(item)}>
                     <p className="text-[15px] font-semibold">{item.duration || "3:45"}</p>
@@ -268,7 +287,10 @@ const DisplayPlaylist = () => {
                     </button>
                   </div>
                 </div>
-              ))}
+              ))
+            ) : (
+              <p>Không tìm thấy bài hát nào</p>
+            )}
           </div>
         </div>
       )}
