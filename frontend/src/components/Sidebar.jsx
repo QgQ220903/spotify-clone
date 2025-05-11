@@ -12,11 +12,11 @@ const Sidebar = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [contextMenu, setContextMenu] = useState(null); // Trạng thái cho menu ngữ cảnh
-  const [isRenameFormOpen, setIsRenameFormOpen] = useState(false); // Trạng thái cho form đổi tên
-  const [renamePlaylistId, setRenamePlaylistId] = useState(null); // ID của playlist đang đổi tên
-  const [newPlaylistName, setNewPlaylistName] = useState(""); // Tên mới của playlist
-  const contextMenuRef = useRef(null); // Ref để xử lý click ngoài menu ngữ cảnh
+  const [contextMenu, setContextMenu] = useState(null);
+  const [isRenameFormOpen, setIsRenameFormOpen] = useState(false);
+  const [renamePlaylistId, setRenamePlaylistId] = useState(null);
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+  const contextMenuRef = useRef(null);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -24,7 +24,6 @@ const Sidebar = () => {
 
   const navigate = useNavigate();
 
-  // Lấy danh sách playlist
   useEffect(() => {
     fetchAllPlaylist().then((res) => {
       if (res.status === 200 && res.data && res.data.results) {
@@ -35,13 +34,11 @@ const Sidebar = () => {
     });
   }, []);
 
-  // Cấu hình Fuse.js
   const fuse = new Fuse(playlists, {
     keys: ["name"],
     threshold: 0.3,
   });
 
-  // Xử lý tìm kiếm
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredPlaylists(playlists);
@@ -51,7 +48,6 @@ const Sidebar = () => {
     }
   }, [searchQuery, playlists]);
 
-  // Xử lý click ngoài để đóng menu ngữ cảnh
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (contextMenuRef.current && !contextMenuRef.current.contains(event.target)) {
@@ -189,60 +185,32 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {isFormOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-[#282828] p-6 rounded-lg w-[300px]">
-            <h2 className="text-lg font-bold mb-4">Tạo danh sách phát mới</h2>
+      {(isFormOpen || isRenameFormOpen) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-lg flex items-center justify-center z-50">
+          <div className="bg-[#2a2a2a] p-5 rounded-xl w-[400px] shadow-lg">
+            <h2 className="text-lg font-semibold mb-4 text-white">
+              {isFormOpen ? "Tạo danh sách phát mới" : "Đổi tên danh sách phát"}
+            </h2>
             <input
               type="text"
-              value={playlistName}
-              onChange={(e) => setPlaylistName(e.target.value)}
-              placeholder="Tên danh sách phát"
-              className="w-full p-2 mb-4 bg-[#3a3a3a] text-white rounded-md outline-none"
+              value={isFormOpen ? playlistName : newPlaylistName}
+              onChange={(e) => (isFormOpen ? setPlaylistName(e.target.value) : setNewPlaylistName(e.target.value))}
+              placeholder={isFormOpen ? "Tên danh sách phát" : "Tên danh sách phát mới"}
+              className="w-full p-3 mb-4 bg-[#3e3e3e] text-white rounded-lg outline-none placeholder-gray-400 focus:ring-2 focus:ring-[#1ed760] transition"
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-3">
               <button
-                onClick={closeForm}
-                className="px-4 py-2 bg-[#2a2a2a] rounded-md hover:bg-[#3a3a3a]"
+                onClick={isFormOpen ? closeForm : closeRenameForm}
+                className="px-4 py-2 bg-[#4a4a4a] text-white rounded-lg hover:bg-[#5a5a5a] transition"
               >
                 Hủy
               </button>
               <button
-                onClick={handleCreatePlaylist}
-                className="px-4 py-2 bg-[#1db954] text-black rounded-md hover:bg-[#1ed760]"
-                disabled={!playlistName.trim()}
+                onClick={isFormOpen ? handleCreatePlaylist : handleRenamePlaylist}
+                className="px-4 py-2 bg-[#1ed760] text-black rounded-lg hover:bg-[#1db954] disabled:opacity-50 disabled:cursor-not-allowed transition"
+                disabled={isFormOpen ? !playlistName.trim() : !newPlaylistName.trim()}
               >
-                Tạo
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isRenameFormOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-[#282828] p-6 rounded-lg w-[300px]">
-            <h2 className="text-lg font-bold mb-4">Đổi tên danh sách phát</h2>
-            <input
-              type="text"
-              value={newPlaylistName}
-              onChange={(e) => setNewPlaylistName(e.target.value)}
-              placeholder="Tên danh sách phát mới"
-              className="w-full p-2 mb-4 bg-[#3a3a3a] text-white rounded-md outline-none"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={closeRenameForm}
-                className="px-4 py-2 bg-[#2a2a2a] rounded-md hover:bg-[#3a3a3a]"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleRenamePlaylist}
-                className="px-4 py-2 bg-[#1db954] text-black rounded-md hover:bg-[#1ed760]"
-                disabled={!newPlaylistName.trim()}
-              >
-                Lưu
+                {isFormOpen ? "Tạo" : "Lưu"}
               </button>
             </div>
           </div>
