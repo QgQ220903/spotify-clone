@@ -86,3 +86,36 @@ export const fetchAllPlaylistById = async (id) => {
     return [];
   }
 };
+
+
+export const deletePlaylistAPI = async (id) => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const response = await axiosInstance.delete("/music/playlists/"+id+'/', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    return response;
+  } catch (error) {
+  console.error("Error fetching all songs:", error);
+    return [];
+  }
+};
+
+
+export const updatePlaylistAPI = async (id,obj) => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const response = await axiosInstance.put("/music/playlists/"+id+'/',obj, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    return response;
+  } catch (error) {
+  console.error("Error fetching all songs:", error);
+    return [];
+  }
+};
+
