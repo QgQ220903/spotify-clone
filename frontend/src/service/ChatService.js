@@ -1,5 +1,38 @@
 import axiosInstance from "../api/axiosInstance";
 
+let ws = null;
+
+const connectWebSocket = () => {
+  const token = localStorage.getItem("accessToken");
+  if (!ws || ws.readyState === WebSocket.CLOSED) {
+    // Thêm token vào URL WebSocket
+    ws = new WebSocket(`ws://localhost:8000/ws/chat/?token=${token}`);
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      // Xử lý tin nhắn mới nhận được
+      if (typeof ChatService.onMessageReceived === "function") {
+        ChatService.onMessageReceived(data);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected");
+      // Thử kết nối lại sau 5 giây
+      setTimeout(connectWebSocket, 5000);
+    };
+  }
+};
+
+// Thêm vào ChatService
 export const ChatService = {
   // Lấy danh sách cuộc trò chuyện
   getConversations: async () => {
@@ -85,4 +118,19 @@ export const ChatService = {
       throw error;
     }
   },
+  connectWebSocket,
+
+  sendMessageWebSocket: (receiverId, content) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(
+        JSON.stringify({
+          receiver_id: receiverId,
+          message: content,
+        })
+      );
+    }
+  },
+
+  // Callback để xử lý tin nhắn mới
+  onMessageReceived: null,
 };

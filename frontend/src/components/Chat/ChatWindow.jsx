@@ -18,13 +18,45 @@ const ChatWindow = ({ selectedUserId }) => {
     }
   }, [selectedUserId]);
 
+  useEffect(() => {
+    // Kết nối WebSocket khi component mount
+    ChatService.connectWebSocket();
+
+    // Đăng ký callback để nhận tin nhắn mới
+    ChatService.onMessageReceived = (data) => {
+      setMessages(prev => [...prev, {
+        id: Date.now(), // Tạm thời dùng timestamp làm id
+        content: data.message,
+        sender: data.sender_id,
+        receiver: currentUserId,
+        timestamp: new Date().toISOString()
+      }]);
+      scrollToBottom();
+    };
+
+    return () => {
+      // Hủy đăng ký callback khi component unmount
+      ChatService.onMessageReceived = null;
+    };
+  }, []);
+
   const handleSend = async () => {
     if (!newMessage.trim()) return;
 
     try {
-      await ChatService.sendMessage(selectedUserId, newMessage);
+      // Gửi tin nhắn qua WebSocket
+      ChatService.sendMessageWebSocket(selectedUserId, newMessage);
       setNewMessage('');
-      loadMessages();
+
+      // Thêm tin nhắn vào state local
+      setMessages(prev => [...prev, {
+        id: Date.now(), // Tạm thời dùng timestamp làm id
+        content: newMessage,
+        sender: currentUserId,
+        receiver: selectedUserId,
+        timestamp: new Date().toISOString()
+      }]);
+      scrollToBottom();
     } catch (error) {
       console.error('Lỗi khi gửi tin nhắn:', error);
     }
