@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TextField, Typography, IconButton, Avatar, InputAdornment
+  TextField, Typography, IconButton, Avatar, InputAdornment,
+  Pagination
 } from '@mui/material';
 import { Add, Delete, Edit, Search } from '@mui/icons-material';
 import ArtistService from '../../services/ArtistService';
@@ -22,11 +23,15 @@ const Artists = () => {
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredArtists, setFilteredArtists] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchArtists = async () => {
     try {
-      const res = await ArtistService.getAll();
+      const res = await ArtistService.getAll(page);
       setArtists(res.data.results);
+      // Tính tổng số trang dựa trên count từ API
+      setTotalPages(Math.ceil(res.data.count / 10)); // Giả sử mỗi trang có 10 items
     } catch (err) {
       console.error('Failed to fetch artists', err);
     }
@@ -34,7 +39,11 @@ const Artists = () => {
 
   useEffect(() => {
     fetchArtists();
-  }, []);
+  }, [page]); // Thêm page vào dependencies
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+  };
 
   useEffect(() => {
     // Filter artists based on searchTerm
@@ -170,6 +179,28 @@ const Artists = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Thêm phân trang */}
+      <Box display="flex" justifyContent="center" mt={3}>
+        <Pagination
+          count={totalPages}
+          page={page}
+          onChange={handlePageChange}
+          color="primary"
+          sx={{
+            '& .MuiPaginationItem-root': {
+              color: spotifyBlack,
+            },
+            '& .Mui-selected': {
+              backgroundColor: spotifyGreenLight,
+              color: spotifyWhite,
+              '&:hover': {
+                backgroundColor: '#178c42',
+              },
+            },
+          }}
+        />
+      </Box>
 
       {/* Dialog for Create/Edit */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">

@@ -63,28 +63,28 @@ const Player = ({ toggleVideo }) => {
     const handleSeekMouseDown = (e) => {
         setIsDraggingSeek(true);
         calculatePreviewTime(e);
-        
+
         if (seekBg.current && seekBar.current) {
             const rect = seekBg.current.getBoundingClientRect();
             const percent = (e.clientX - rect.left) / rect.width;
             seekBar.current.style.width = `${percent * 100}%`;
         }
-        
+
         seekSong(e);
     };
 
     const handleSeekMouseMove = (e) => {
         if (isDraggingSeek) {
             calculatePreviewTime(e);
-            
+
             if (seekBg.current && audioRef.current && audioRef.current.duration) {
                 const rect = seekBg.current.getBoundingClientRect();
                 const percent = (e.clientX - rect.left) / rect.width;
-                
+
                 if (seekBar.current) {
                     seekBar.current.style.width = `${percent * 100}%`;
                 }
-                
+
                 const newTime = audioRef.current.duration * percent;
                 if (videoRef && videoRef.current) {
                     videoRef.current.currentTime = newTime;
@@ -166,7 +166,7 @@ const Player = ({ toggleVideo }) => {
             document.exitFullscreen().then(() => setIsFullscreen(false));
         }
     };
-    
+
     // Handle document-wide mouse events
     useEffect(() => {
         const handleMouseMove = (e) => {
@@ -240,11 +240,11 @@ const Player = ({ toggleVideo }) => {
                                 className={`p-2 rounded-full ${shuffleMode ? 'text-green-500 hover:text-green-400' : 'text-gray-400 hover:text-white'} transition-colors`}
                                 aria-label={shuffleMode ? "Shuffle on" : "Shuffle off"}
                             >
-                                <svg 
-                                    data-encore-id="icon" 
-                                    role="img" 
-                                    aria-hidden="true" 
-                                    viewBox="0 0 16 16" 
+                                <svg
+                                    data-encore-id="icon"
+                                    role="img"
+                                    aria-hidden="true"
+                                    viewBox="0 0 16 16"
                                     className="w-4 h-4"
                                     fill="currentColor"
                                 >
@@ -263,7 +263,7 @@ const Player = ({ toggleVideo }) => {
                             src={assets.prev}
                             alt="Previous"
                         />
-                        
+
                         {playStatus ? (
                             <div onClick={pause} className="cursor-pointer w-8 h-8 bg-white flex items-center justify-center rounded-full hover:scale-105">
                                 <img className="w-3.5 h-3.5" src={assets.pause} alt="Pause" />
@@ -273,7 +273,7 @@ const Player = ({ toggleVideo }) => {
                                 <img className="w-3.5 h-3.5" src={assets.play} alt="Play" />
                             </div>
                         )}
-                        
+
                         <img
                             onClick={next}
                             className="w-7 h-7 cursor-pointer opacity-60 hover:opacity-100 hover:scale-105"
@@ -288,11 +288,11 @@ const Player = ({ toggleVideo }) => {
                                 className={`p-2 ${repeatMode > 0 ? 'text-green-500 hover:text-green-400' : 'text-gray-400 hover:text-white'} transition-colors`}
                                 aria-label={repeatMode === 0 ? "Repeat off" : repeatMode === 1 ? "Repeat all" : "Repeat one"}
                             >
-                                <svg 
-                                    data-encore-id="icon" 
-                                    role="img" 
-                                    aria-hidden="true" 
-                                    viewBox="0 0 16 16" 
+                                <svg
+                                    data-encore-id="icon"
+                                    role="img"
+                                    aria-hidden="true"
+                                    viewBox="0 0 16 16"
                                     className="w-5 h-5"
                                     fill="currentColor"
                                 >
@@ -347,13 +347,13 @@ const Player = ({ toggleVideo }) => {
 
                 {/* Volume and extra controls - Right side */}
                 <div className="hidden lg:flex items-center gap-2 opacity-75">
-                    <div 
+                    <div
                         onClick={handleToggleVideo}
                         className={`w-5 h-5 rounded border-2 ${isVideoVisible ? 'border-green-500' : 'border-gray-500'} flex items-center justify-center cursor-pointer hover:opacity-100 opacity-60 hover:scale-105`}
                     >
-                    <img className="w-2 h-2" src={assets.plays} alt="Toggle video" />
+                        <img className="w-2 h-2" src={assets.plays} alt="Toggle video" />
                     </div>
-                    <div 
+                    <div
                         className={`w-6 h-6 cursor-pointer hover:opacity-100 opacity-60 hover:scale-105 ${isQueueOpen ? 'text-green-500' : ''}`}
                         onClick={toggleQueue}
                     >
@@ -400,15 +400,15 @@ const Player = ({ toggleVideo }) => {
                             </svg>
                         ) : (
                             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path fillRule="evenodd" clipRule="evenodd" d="M2 2H8V4H4V8H2V2ZM22 2V8H20V4H16V2H22ZM2 22V16H4V20H8V22H2ZM22 22H16V20H20V16H22V22Z" fill="white"/>
+                                <path fillRule="evenodd" clipRule="evenodd" d="M2 2H8V4H4V8H2V2ZM22 2V8H20V4H16V2H22ZM2 22V16H4V20H8V22H2ZM22 22H16V20H20V16H22V22Z" fill="white" />
                             </svg>
                         )}
                     </div>
                 </div>
             </div>
-            <DisplayQueue 
-                isOpen={isQueueOpen} 
-                onClose={() => setIsQueueOpen(false)} 
+            <DisplayQueue
+                isOpen={isQueueOpen}
+                onClose={() => setIsQueueOpen(false)}
             />
         </>
     );

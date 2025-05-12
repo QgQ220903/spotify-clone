@@ -33,7 +33,6 @@ const DisplayHome = () => {
         getSongs();
     }, []);
 
-    // Lấy danh sách album
     useEffect(() => {
         const getAlbums = async () => {
             const fetchedAlbums = await fetchAllAlbums();
@@ -50,50 +49,58 @@ const DisplayHome = () => {
     }, []);
 
     return (
-        <div>
-            <div className="flex items-center gap-2 mt-1">
-                <p className="bg-white text-black px-4 py-1 rounded-2xl font-semibold cursor-pointer">
+        <div className="px-4 md:px-6 lg:px-8 pb-20">
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-3 mt-4 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+                <button className="bg-white text-black px-5 py-2 rounded-full font-semibold cursor-pointer hover:bg-gray-100 transition whitespace-nowrap">
                     All
-                </p>
-                <p className="bg-black text-white px-4 py-1 rounded-2xl font-semibold cursor-pointer">
+                </button>
+                <button className="bg-[#2a2a2a] text-white px-5 py-2 rounded-full font-semibold cursor-pointer hover:bg-[#3a3a3a] transition whitespace-nowrap">
                     Music
-                </p>
-                <p className="bg-black text-white px-4 py-1 rounded-2xl font-semibold cursor-pointer">
+                </button>
+                <button className="bg-[#2a2a2a] text-white px-5 py-2 rounded-full font-semibold cursor-pointer hover:bg-[#3a3a3a] transition whitespace-nowrap">
                     Podcasts
-                </p>
+                </button>
             </div>
-            <div className="mb-4">
-                <h1 className="font-bold my-3 text-[26px]">Popular Album For You</h1>
-                <div className="flex overflow-auto">
-                    {albums &&
-                        albums.map((item, index) => (
-                            <AlbumItem
-                                key={index}
-                                name={item.title}
-                                artist={item.artist?.name || "Unknown Artist"}
-                                id={item.id}
-                                image={item.cover_image}
-                            />
+
+            {/* Albums Section */}
+            <div className="mb-8">
+                <h1 className="font-bold text-2xl md:text-3xl mb-5 text-white">Popular Album For You</h1>
+                <div className="relative">
+                    <div className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                        {albums.map((item, index) => (
+                            <div key={index} className="w-40 md:w-48 lg:w-56 flex-shrink-0">
+                                <AlbumItem
+                                    name={item.title}
+                                    artist={item.artist?.name || "Unknown Artist"}
+                                    id={item.id}
+                                    image={item.cover_image}
+                                />
+                            </div>
                         ))}
+                    </div>
                 </div>
             </div>
-            <div className="mb-4">
-                <h1 className="font-bold my-3 text-[26px]">Today's biggest hits</h1>
-                <div className="flex overflow-auto">
-                    {songs &&
-                        songs.map((item, index) => (
+
+            {/* Songs Section */}
+            <div className="mb-8">
+                <h1 className="font-bold text-2xl md:text-3xl mb-5 text-white">Today's Biggest Hits</h1>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {songs.map((item, index) => (
+                        <div key={index} className="flex-shrink-0">
                             <SongItem
-                                key={index}
                                 name={item.title}
                                 artists={item.list_name}
                                 id={item.id}
                                 image={item.thumbnail}
                                 onClick={() => playWithSong(item)}
                             />
-                        ))}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
     );
 };
+
 export default DisplayHome;

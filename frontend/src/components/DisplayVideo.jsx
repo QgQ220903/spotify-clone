@@ -6,20 +6,20 @@ const DisplayVideo = () => {
     const containerRef = useRef(null);
 
     const handleDownload = async () => {
-      try {
-        // Sử dụng endpoint API mới thay vì truy cập trực tiếp file
-        const downloadUrl = `/api/download/video/${encodeURIComponent(track.video_file.replace('/media/', ''))}`;
+        try {
+            // Sử dụng endpoint API mới thay vì truy cập trực tiếp file
+            const downloadUrl = `/api/download/video/${encodeURIComponent(track.video_file.replace('/media/', ''))}`;
 
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = `${track.title}.mp4`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (error) {
-        console.error('Download failed:', error);
-        alert('Tải xuống thất bại. Vui lòng thử lại!');
-      }
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = `${track.title}.mp4`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert('Tải xuống thất bại. Vui lòng thử lại!');
+        }
     };
 
     // Đồng bộ video với audio
@@ -60,7 +60,7 @@ const DisplayVideo = () => {
                     </video>
                 </div>
             </div>
-            
+
             {/* Thông tin bài hát và nút tải xuống */}
             <div className="bg-[#121212] text-white p-4">
                 <div className="flex items-start space-x-4">
@@ -98,7 +98,7 @@ const DisplayVideo = () => {
                         </button>
                     </div>
                 </div>
-                
+
                 {/* Ngày phát hành (nếu có) */}
                 {track.release_date && (
                     <div className="mt-3 text-sm text-gray-400">
