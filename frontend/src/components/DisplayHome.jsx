@@ -67,9 +67,9 @@ const DisplayHome = () => {
             <div className="mb-8">
                 <h1 className="font-bold text-2xl md:text-3xl mb-5 text-white">Popular Album For You</h1>
                 <div className="relative">
-                    <div className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
                         {albums.map((item, index) => (
-                            <div key={index} className="w-40 md:w-48 lg:w-56 flex-shrink-0">
+                            <div key={index} className="w-full">
                                 <AlbumItem
                                     name={item.title}
                                     artist={item.artist?.name || "Unknown Artist"}
